@@ -1,0 +1,15 @@
+prometheus:
+  url: "http://localhost:9091"
+  username: "admin"
+  password: ""
+metrics:
+  - "kepler_node_power_watts"
+  - "node_cpu_seconds_total"
+
+infrastructure:
+  hyperconverged: false
+  numNodesTotal: 10
+  numCompute: 3
+  storage: 3
+
+
