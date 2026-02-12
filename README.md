@@ -43,14 +43,6 @@ make image
 
 ### Running on the fly:
 
-```shell 
-go mod init leaf  
-```
-
-```shell
-go mod tidy
-```
-
 # Start exporter
 ```shell
 go run ./cmd/leaf --config config.yaml
