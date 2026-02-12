@@ -9,6 +9,7 @@ Before proceedin any further, ensure you have the necessary softwares to use the
   - Docker
   - Go (golang)
   - make
+  - Prometheus
 
 Here'a a tree of files present so far:
 
