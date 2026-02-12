@@ -3,7 +3,7 @@ name: build-binary-and-image
 
 on:
   push:
-    branches: [ "main-github-actions" ]
+    branches: [ "main" ]
 
 jobs:
 
