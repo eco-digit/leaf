@@ -12,3 +12,6 @@ RUN cd /src \
     && go build -ldflags '-s -w' -o leaf-bin cmd/leaf/main.go \
     && apt-get remove -qq -y golang \
     && apt-get autoremove -y
+
+# Run compiled binary as entrypoint for the container
+ENTRYPOINT ["/src/leaf-bin", "--config", "internal/config/config.yaml"]
