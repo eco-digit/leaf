@@ -46,5 +46,5 @@ make image
 
 # Start exporter
 ```shell
-go run ./cmd/leaf --config config.yaml
+go run ./cmd/leaf --config internal/config/config.yaml
 ```
