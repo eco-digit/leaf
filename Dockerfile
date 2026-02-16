@@ -1,17 +1,27 @@
 # Base container image
-FROM debian:stable
+FROM golang:1.24 AS builder
 
 # Copy code to container
 COPY . /src
 
-# Update the container image and build the binary
-RUN cd /src \
-    && apt-get update \
-    && apt-get upgrade -qq -y \
-    && apt-get install -qq -y ca-certificates golang \
-    && go build -ldflags '-s -w' -o leaf-bin cmd/leaf/main.go \
-    && apt-get remove -qq -y golang \
-    && apt-get autoremove -y
+# Build artifact from /src
+WORKDIR /src
 
-# Run compiled binary as entrypoint for the container
-ENTRYPOINT ["/src/leaf-bin", "--config", "internal/config/config.yaml"]
+# Update the container image and build the binary
+RUN go build -ldflags '-s -w' -o leaf-bin cmd/leaf/main.go
+######################################################################
+
+FROM prom/prometheus:main
+
+COPY --from=builder /src/leaf-bin /.
+COPY --from=builder /src/internal/config/config.yaml /.
+
+EXPOSE 9090/tcp
+EXPOSE 9091/tcp
+
+# CMD ["/leaf-bin", "--config", "/config.yaml"]
+# ENTRYPOINT ["/leaf-bin", "--config", "/config.yaml"]
+
+ENTRYPOINT [ "/bin/prometheus" ]
+CMD        [ "--config.file=/etc/prometheus/prometheus.yml", \
+             "--storage.tsdb.path=/prometheus" ]
