@@ -11,7 +11,7 @@ WORKDIR /src
 RUN go build -ldflags '-s -w' -o leaf-bin cmd/leaf/main.go
 ######################################################################
 
-FROM prom/prometheus:main
+FROM prom/prometheus:main AS runtime
 
 COPY --from=builder /src/leaf-bin /.
 COPY --from=builder /src/internal/config/config.yaml /.
@@ -19,9 +19,9 @@ COPY --from=builder /src/internal/config/config.yaml /.
 EXPOSE 9090/tcp
 EXPOSE 9091/tcp
 
-# CMD ["/leaf-bin", "--config", "/config.yaml"]
-# ENTRYPOINT ["/leaf-bin", "--config", "/config.yaml"]
-
-ENTRYPOINT [ "/bin/prometheus" ]
-CMD        [ "--config.file=/etc/prometheus/prometheus.yml", \
+# ENTRYPOINT [ "/bin/prometheus" ]
+# CMD        [ "--config.file=/etc/prometheus/prometheus.yml", \
              "--storage.tsdb.path=/prometheus" ]
+
+ENTRYPOINT ["/leaf-bin"]
+CMD        ["--config", "/config.yaml"]
