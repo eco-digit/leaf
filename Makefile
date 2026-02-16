@@ -8,3 +8,6 @@ all:
 
 image:
 	docker build . --file Dockerfile --tag "leaf:$(DOCKER_TAG)"
+
+test:
+	go run ./cmd/leaf --config internal/config/config.yaml
