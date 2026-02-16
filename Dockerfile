@@ -13,8 +13,10 @@ RUN go build -ldflags '-s -w' -o leaf-bin cmd/leaf/main.go
 
 FROM prom/prometheus:main AS runtime
 
-COPY --from=builder /src/leaf-bin /.
-COPY --from=builder /src/internal/config/config.yaml /.
+WORKDIR /
+
+COPY --from=builder /src/leaf-bin .
+COPY --from=builder /src/internal/config/config.yaml .
 
 EXPOSE 9090/tcp
 EXPOSE 9091/tcp
