@@ -28,4 +28,5 @@ EXPOSE 9091/tcp
 # CMD        [ "--config", "/config.yaml" ]
 
 ENTRYPOINT   [ "/bin/sh", "-c" ]
-CMD          [ "/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus" ]
+
+CMD          [ "/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus", "\&\;", "echo HA" ]
