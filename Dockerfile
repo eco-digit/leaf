@@ -23,6 +23,9 @@ EXPOSE 9091/tcp
 
 # ENTRYPOINT [ "/bin/prometheus" ]
 # CMD        [ "--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus" ]
+#
+# ENTRYPOINT [ "/leaf-bin" ]
+# CMD        [ "--config", "/config.yaml" ]
 
-ENTRYPOINT [ "/leaf-bin" ]
-CMD        [ "--config", "/config.yaml" ]
+ENTRYPOINT   [ "/bin/sh", "-c" ]
+CMD          [ "/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus" ]
