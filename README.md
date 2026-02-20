@@ -1,6 +1,6 @@
-# Leaf 
+# LEAF
 
-## **L**ifecycle based **E**nvironmental **A**ssessment of **F**ootprints
+LEAF stands for '**L**ifecycle-based **E**nvironmental **A**ssessment of **F**ootprints' :leaves:
 
 Currently, this exporter/service is only running locally you can connect it to a prometheus server using port forwarding. 
 
