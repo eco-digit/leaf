@@ -11,6 +11,8 @@ Before proceedin any further, ensure you have the necessary softwares to use the
   - make
   - Prometheus
 
+> NOTE: leaf requires that prometheus is available and running, otherwise it will be terminated and constantly restarted until it connects to the service.
+
 Here'a a tree of files present so far:
 
 ```
@@ -30,21 +32,20 @@ leaf/
 └── config.yaml
 ```
 
-### Building the binary:
+### Building the binary
 
 ```sh
 make
 ```
 
-### Building the container image:
+### Building container image
 
 ```sh
 make image
 ```
 
-### Running on the fly:
+### Starting exporter manually
 
-# Start exporter
 ```shell
 go run ./cmd/leaf --config internal/config/config.yaml
 ```
