@@ -2,9 +2,9 @@
 
 LEAF stands for '**L**ifecycle-based **E**nvironmental **A**ssessment of **F**ootprints' :leaves:
 
-Currently, this exporter/service is only running locally you can connect it to a prometheus server using port forwarding. 
+Currently, this exporter/service is only running locally. You may connect it to a prometheus server using port forwarding, or changing the configuration file accordingly. 
 
-Before proceedin any further, ensure you have the necessary softwares to use the code served on this repository.
+Before proceeding any further, ensure you have the necessary softwares to use the code served on this repository.
 
   - Docker
   - Go (golang)
