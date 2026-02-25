@@ -8,26 +8,33 @@ COPY . /src
 WORKDIR /src
 
 # Update the container image and build the binary
-RUN go build -ldflags '-s -w' -o leaf-bin cmd/leaf/main.go
+RUN go build -ldflags '-s -w' -o leaf cmd/leaf/main.go
 ######################################################################
 
-FROM prom/prometheus:main AS runtime
+# https://github.com/prometheus/prometheus/blob/v3.9.1/Dockerfile
+FROM prom/prometheus:v3.9.1 AS prometheus
+######################################################################
 
-# EXPOSE 9090/tcp
-# EXPOSE 9091/tcp
+FROM debian:stable AS runtime
+LABEL app=leaf
+LABEL org=osba
 
-COPY entrypoint.sh /entrypoint.sh
+EXPOSE 9090/tcp
+EXPOSE 9091/tcp
 
-COPY --from=builder /src/leaf-bin /leaf-bin
-COPY --from=builder /src/internal/config/config.yaml /config.yaml
+RUN mkdir -p /etc/leaf /etc/prometheus
 
-# ENTRYPOINT [ "/bin/prometheus" ]
-# CMD        [ "--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus" ]
-#
-# ENTRYPOINT [ "/leaf-bin" ]
-# CMD        [ "--config", "/config.yaml" ]
-#
-# ENTRYPOINT [ "/bin/sh", "-c" ]
-# CMD        [ "/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus", "\&\;", "echo HA" ]
+COPY --from=builder /src/entrypoint.sh /.
+COPY --from=builder /src/internal/config/config.yaml /etc/leaf/.
+COPY --from=builder /src/leaf /bin/.
 
-ENTRYPOINT [ "/bin/sh", "-c", "entrypoint.sh" ]
+COPY --from=prometheus /bin/prometheus /bin/.
+COPY --from=prometheus /bin/promtool /bin/.
+COPY --from=prometheus /etc/prometheus/prometheus.yml /etc/prometheus/.
+
+RUN chmod 755 /bin/leaf
+
+VOLUME [ "/prometheus" ]
+
+ENTRYPOINT [ "/bin/sh" ]
+CMD [ "/entrypoint.sh" ]
