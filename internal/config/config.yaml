@@ -1,7 +1,9 @@
+# https://github.com/prometheus/prometheus/blob/v3.9.1/Dockerfile#L27, defaults to port 9090
 prometheus:
-  url: "http://localhost:9091"
+  url: "http://localhost:9090"
   username: "admin"
   password: ""
+
 metrics:
   - "kepler_node_power_watts"
   - "node_cpu_seconds_total"
