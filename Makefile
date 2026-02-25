@@ -4,7 +4,7 @@ DOCKER_TAG := latest
 ######################################################################
 
 all:
-	go build -ldflags '-s -w' -o leaf-bin cmd/leaf/main.go
+	go build -ldflags '-s -w' -o leaf cmd/leaf/main.go
 
 image:
 	docker build -f Dockerfile -t leaf:$(DOCKER_TAG) .
