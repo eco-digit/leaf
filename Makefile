@@ -13,7 +13,7 @@ LEAF_PROMETHEUS_USER := admin
 ######################################################################
 
 export DOCKER_GOLANG_RELEASE
-export DOCKER_PROMETHEUS_RELASE
+export DOCKER_PROMETHEUS_RELEASE
 ######################################################################
 
 all:
