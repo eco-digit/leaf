@@ -17,7 +17,7 @@ clean:
 	rm -f $(LEAF_BIN)
 
 image:
-	docker build -f $(DOCKER_DIR)/Dockerfile -t leaf:$(DOCKER_TAG) .
+	docker build -q -f $(DOCKER_DIR)/Dockerfile -t leaf:$(DOCKER_TAG) .
 
 run: all
 	# go run ./cmd/leaf --config $(LEAF_CONFIG)
