@@ -17,10 +17,13 @@ Here'a a `tree` of files present so far:
 
 ```
 .
+├── bin
 ├── cmd
 │   └── leaf
 │       └── main.go
-├── Dockerfile
+├── docker
+│   ├── Dockerfile
+│   └── Dockerfile_test
 ├── entrypoint.sh
 ├── go.mod
 ├── go.sum
@@ -45,7 +48,7 @@ Here'a a `tree` of files present so far:
 make
 ```
 
-### Building container image
+### Building a Docker container image
 
 ```sh
 make image
@@ -53,6 +56,14 @@ make image
 
 ### Starting exporter manually
 
-```shell
-go run ./cmd/leaf --config internal/config/config.yaml
+  * **Running the binary locally**
+
+```sh
+make run
+```
+
+  * **Running the binary in a Docker container*
+
+```sh
+make run-image
 ```
