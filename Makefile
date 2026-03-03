@@ -27,3 +27,6 @@ image:
 run: all
 	# go run ./cmd/leaf --config $(LEAF_CONFIG)
 	$(LEAF_BIN) --config $(LEAF_CONFIG)
+
+run-image: image
+	docker run --rm --name leaf -it leaf:$(DOCKER_TAG)
