@@ -18,7 +18,11 @@ clean:
 	rm -f $(LEAF_BIN)
 
 image:
-	docker build -q -f $(DOCKER_DIR)/Dockerfile -t leaf:$(DOCKER_TAG) .
+	docker build -q -f $(DOCKER_DIR)/Dockerfile -t leaf:$(DOCKER_TAG) \
+		--build-arg LEAF_PROMETHEUS=$(LEAF_PROMETHEUS) \
+		--build-arg LEAF_PROMETHEUS_PASS=$(LEAF_PROMETHEUS_PASS) \
+		--build-arg LEAF_PROMETHEUS_USER=$(LEAF_PROMETHEUS_USER) \
+		.
 
 run: all
 	# go run ./cmd/leaf --config $(LEAF_CONFIG)
