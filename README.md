@@ -58,12 +58,12 @@ make image
 
   * **Running the binary locally**
 
-```sh
-make run
-```
+    ```sh
+    make run
+    ```
 
-  * **Running the binary in a Docker container*
+  * **Running the binary in a Docker container**
 
-```sh
-make run-image
-```
+    ```sh
+    make run-image
+    ```
