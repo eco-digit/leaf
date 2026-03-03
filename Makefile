@@ -5,8 +5,9 @@ DOCKER_DIR := $(CURDIR)/docker
 DOCKER_TAG := latest
 LEAF_BIN := $(CURDIR)/bin/leaf
 LEAF_CONFIG := $(CURDIR)/internal/config/config.yaml
-LEAF_PROM_PASS := passwd
-LEAF_PROM_USER := admin
+LEAF_PROMETHEUS := 127.0.0.1
+LEAF_PROMETHEUS_PASS := passwd
+LEAF_PROMETHEUS_USER := admin
 ######################################################################
 
 all:
