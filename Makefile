@@ -29,4 +29,7 @@ run: all
 	$(LEAF_BIN) --config $(LEAF_CONFIG)
 
 run-image: image
-	docker run --rm --name leaf -it leaf:$(DOCKER_TAG)
+	docker run --rm --name leaf -it \
+		-p 9010:9010 \
+		-p 9090:9090 \
+		leaf:$(DOCKER_TAG)

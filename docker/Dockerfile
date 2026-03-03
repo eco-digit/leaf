@@ -19,8 +19,8 @@ FROM debian:stable AS runtime
 LABEL app=leaf
 LABEL org=osba
 
-EXPOSE 9090/tcp
 EXPOSE 9010/tcp
+EXPOSE 9090/tcp
 
 RUN mkdir -p /etc/leaf /etc/prometheus
 
