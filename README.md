@@ -68,6 +68,12 @@ make image
     make run-image
     ```
 
+### Test 'leaf' in a container with Prometheus
+
+```sh
+make test
+```
+
 ### Cleaning binary artifact and Docker images
 
 ```sh
