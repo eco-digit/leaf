@@ -38,5 +38,5 @@ RUN chmod 755 /bin/leaf
 
 VOLUME [ "/prometheus" ]
 
-ENTRYPOINT [ "/bin/sh", "-c" ]
+ENTRYPOINT [ "/bin/sh" ]
 CMD [ "/entrypoint.sh" ]
