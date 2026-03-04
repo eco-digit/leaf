@@ -67,3 +67,9 @@ make image
     ```sh
     make run-image
     ```
+
+### Cleaning binary artifact and Docker images
+
+```sh
+make clean
+```
