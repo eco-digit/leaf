@@ -36,7 +36,5 @@ RUN sed -i "s/%%PROMETHEUS_USER%%/${LEAF_PROMETHEUS_USER}/g" /etc/leaf/config.ya
 
 RUN chmod 755 /bin/leaf
 
-VOLUME [ "/prometheus" ]
-
 ENTRYPOINT [ "/bin/sh" ]
 CMD [ "/entrypoint.sh" ]
