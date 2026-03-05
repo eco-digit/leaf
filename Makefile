@@ -56,7 +56,8 @@ run-image: image
 		leaf:$(DOCKER_TAG)
 
 test:
-	docker build -q -f $(DOCKER_DIR)/Dockerfile_test -t leaf:$(DOCKER_TAG)_test $(LEAF_DOCKER_BUILD_ARGS) .
+	docker build -q -f $(DOCKER_DIR)/Dockerfile_test -t leaf:$(DOCKER_TAG)_test \
+		--no-cache $(LEAF_DOCKER_BUILD_ARGS) .
 	docker run --rm --name leaf -it -d \
 		-p 9010:9010 \
 		-p 9090:9090 \
