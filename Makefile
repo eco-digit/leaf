@@ -2,7 +2,8 @@
 ######################################################################
 
 export DOCKER_DIR := $(CURDIR)/docker
-export DOCKER_GOLANG_RELEASE := 1.26-alpine
+export DOCKER_DEBIAN_RELEASE := stable			# runtime container
+export DOCKER_GOLANG_RELEASE := 1.26-alpine		# builder container
 export DOCKER_PROMETHEUS_RELEASE := 3.9.1
 export DOCKER_TAG := latest
 export LEAF_BIN := $(CURDIR)/bin/leaf
@@ -13,6 +14,7 @@ export LEAF_PROMETHEUS_USER := admin
 ######################################################################
 
 export LEAF_DOCKER_BUILD_ARGS := \
+		--build-arg DOCKER_DEBIAN_RELEASE=$(DOCKER_DEBIAN_RELEASE) \
 		--build-arg DOCKER_GOLANG_RELEASE=$(DOCKER_GOLANG_RELEASE) \
 		--build-arg DOCKER_PROMETHEUS_RELEASE=$(DOCKER_PROMETHEUS_RELEASE) \
 		--build-arg LEAF_PROMETHEUS=$(LEAF_PROMETHEUS) \

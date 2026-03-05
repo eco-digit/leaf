@@ -1,3 +1,4 @@
+ARG DOCKER_DEBIAN_RELEASE=stable
 ARG DOCKER_GOLANG_RELEASE=1.26-alpine
 ARG DOCKER_PROMETHEUS_RELEASE=3.9.1
 ARG LEAF_PROMETHEUS=http://127.0.0.1:9090
@@ -11,15 +12,16 @@ WORKDIR /src
 RUN go build -ldflags '-s -w' -o leaf cmd/leaf/main.go
 ######################################################################
 
-FROM prom/prometheus:v$DOCKER_PROMETHEUS_RELEASE AS prometheus
+FROM prom/prometheus:v${DOCKER_PROMETHEUS_RELEASE} AS prometheus
 ######################################################################
 
-FROM debian:stable AS runtime
+FROM debian:${DOCKER_DEBIAN_RELEASE} AS runtime
 LABEL app=leaf
 LABEL org=osba
 
-ENV DOCKER_GOLANG_RELEASE=$DOCKER_GOLANG_RELEASE
-ENV DOCKER_PROMETHEUS_RELEASE=$DOCKER_PROMETHEUS_RELEASE
+ENV DOCKER_DEBIAN_RELEASE=${DOCKER_DEBIAN_RELEASE}
+ENV DOCKER_GOLANG_RELEASE=${DOCKER_GOLANG_RELEASE}
+ENV DOCKER_PROMETHEUS_RELEASE=${DOCKER_PROMETHEUS_RELEASE}
 ENV LEAF_PROMETHEUS=$LEAF_PROMETHEUS
 ENV LEAF_PROMETHEUS_PASS=$LEAF_PROMETHEUS_PASS
 ENV LEAF_PROMETHEUS_USER=$LEAF_PROMETHEUS_USER
@@ -33,16 +35,14 @@ COPY --from=builder /src/entrypoint.sh /.
 COPY --from=builder /src/internal/config/config.yaml /etc/leaf/.
 COPY --from=builder /src/leaf /bin/.
 
-RUN sed -i "s/%%PROMETHEUS%%/${LEAF_PROMETHEUS}/g" /etc/leaf/config.yaml
-RUN sed -i "s/%%PROMETHEUS_PASS%%/${LEAF_PROMETHEUS_PASS}/g" /etc/leaf/config.yaml
-RUN sed -i "s/%%PROMETHEUS_USER%%/${LEAF_PROMETHEUS_USER}/g" /etc/leaf/config.yaml
+RUN sed -i "" "s/%%PROMETHEUS%%/${LEAF_PROMETHEUS}/g" /etc/leaf/config.yaml
+RUN sed -i "" "s/%%PROMETHEUS_PASS%%/${LEAF_PROMETHEUS_PASS}/g" /etc/leaf/config.yaml
+RUN sed -i "" "s/%%PROMETHEUS_USER%%/${LEAF_PROMETHEUS_USER}/g" /etc/leaf/config.yaml
+RUN chmod 755 /bin/leaf
 
 COPY --from=prometheus /bin/prometheus /bin/.
 COPY --from=prometheus /bin/promtool /bin/.
 COPY --from=prometheus /etc/prometheus/prometheus.yml /etc/prometheus/.
-
-RUN chmod 755 /bin/leaf
-
 VOLUME [ "/prometheus" ]
 
 ENTRYPOINT [ "/bin/sh" ]
