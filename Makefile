@@ -57,7 +57,9 @@ run-image: image
 
 test:
 	docker build -q -f $(DOCKER_DIR)/Dockerfile_test -t leaf:$(DOCKER_TAG)_test $(LEAF_DOCKER_BUILD_ARGS) .
-	docker run --rm --name leaf -it \
+	docker run --rm --name leaf -it -d \
 		-p 9010:9010 \
 		-p 9090:9090 \
 		leaf:$(DOCKER_TAG)_test
+	docker exec leaf env
+	docker container stop leaf
