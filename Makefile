@@ -1,4 +1,4 @@
-.SILENT:
+# .SILENT:
 ######################################################################
 
 DOCKER_DEBIAN_RELEASE := stable			# runtime container

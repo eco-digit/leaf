@@ -35,9 +35,9 @@ COPY --from=builder /src/entrypoint.sh /.
 COPY --from=builder /src/internal/config/config.yaml /etc/leaf/.
 COPY --from=builder /src/leaf /bin/.
 
-RUN "sed -i "" "s/%%PROMETHEUS%%/${LEAF_PROMETHEUS}/g" /etc/leaf/config.yaml
-RUN "sed -i "" "s/%%PROMETHEUS_PASS%%/${LEAF_PROMETHEUS_PASS}/g" /etc/leaf/config.yaml
-RUN "sed -i "" "s/%%PROMETHEUS_USER%%/${LEAF_PROMETHEUS_USER}/g" /etc/leaf/config.yaml
+RUN sed -i "s/%%PROMETHEUS%%/${LEAF_PROMETHEUS}/g" /etc/leaf/config.yaml
+RUN sed -i "s/%%PROMETHEUS_PASS%%/${LEAF_PROMETHEUS_PASS}/g" /etc/leaf/config.yaml
+RUN sed -i "s/%%PROMETHEUS_USER%%/${LEAF_PROMETHEUS_USER}/g" /etc/leaf/config.yaml
 RUN chmod 755 /bin/leaf
 
 COPY --from=prometheus /bin/prometheus /bin/.
