@@ -1,25 +1,38 @@
 .SILENT:
 ######################################################################
 
-export DOCKER_DIR := $(CURDIR)/docker
-export DOCKER_DEBIAN_RELEASE := stable			# runtime container
-export DOCKER_GOLANG_RELEASE := 1.26-alpine		# builder container
-export DOCKER_PROMETHEUS_RELEASE := 3.9.1
-export DOCKER_TAG := latest
-export LEAF_BIN := $(CURDIR)/bin/leaf
-export LEAF_CONFIG := $(CURDIR)/internal/config/config.yaml.sample
-export LEAF_PROMETHEUS := http://127.0.0.1:9090
-export LEAF_PROMETHEUS_PASS := passwd
-export LEAF_PROMETHEUS_USER := admin
+DOCKER_DEBIAN_RELEASE := stable			# runtime container
+DOCKER_DIR := $(CURDIR)/docker
+DOCKER_GOLANG_RELEASE := 1.26-alpine	# builder container
+DOCKER_PROMETHEUS_RELEASE := 3.9.1
+DOCKER_TAG := latest
+LEAF_BIN := $(CURDIR)/bin/leaf
+LEAF_CONFIG := $(CURDIR)/internal/config/config.yaml.sample
+LEAF_PROMETHEUS := http://127.0.0.1:9090
+LEAF_PROMETHEUS_PASS := passwd
+LEAF_PROMETHEUS_USER := admin
 ######################################################################
 
-export LEAF_DOCKER_BUILD_ARGS := \
+LEAF_DOCKER_BUILD_ARGS := \
 		--build-arg DOCKER_DEBIAN_RELEASE=$(DOCKER_DEBIAN_RELEASE) \
 		--build-arg DOCKER_GOLANG_RELEASE=$(DOCKER_GOLANG_RELEASE) \
 		--build-arg DOCKER_PROMETHEUS_RELEASE=$(DOCKER_PROMETHEUS_RELEASE) \
 		--build-arg LEAF_PROMETHEUS=$(LEAF_PROMETHEUS) \
 		--build-arg LEAF_PROMETHEUS_PASS=$(LEAF_PROMETHEUS_PASS) \
 		--build-arg LEAF_PROMETHEUS_USER=$(LEAF_PROMETHEUS_USER)
+######################################################################
+
+export DOCKER_DEBIAN_RELEASE
+export DOCKER_DIR
+export DOCKER_GOLANG_RELEASE
+export DOCKER_PROMETHEUS_RELEASE
+export DOCKER_TAG
+export LEAF_BIN
+export LEAF_CONFIG
+export LEAF_DOCKER_BUILD_ARGS
+export LEAF_PROMETHEUS
+export LEAF_PROMETHEUS_PASS
+export LEAF_PROMETHEUS_USER
 ######################################################################
 
 all:
