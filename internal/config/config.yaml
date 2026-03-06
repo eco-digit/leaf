@@ -1,15 +1,15 @@
+---
 prometheus:
-  url: "http://localhost:9091"
-  username: "admin"
-  password: ""
+  url: "%%PROMETHEUS%%"
+  username: "%%PROMETHEUS_USER%%"
+  password: "%%PROMETHEUS_PASS%%"
+
 metrics:
   - "kepler_node_power_watts"
   - "node_cpu_seconds_total"
 
 infrastructure:
   hyperconverged: false
-  numNodesTotal: 10
   numCompute: 3
+  numNodesTotal: 10
   storage: 3
-
-

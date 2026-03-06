@@ -1,0 +1,40 @@
+---
+name: build-binary-and-image
+
+on:
+  push
+
+jobs:
+
+  build-binary:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: 'go.mod'
+    - name: Build leaf Binary
+      run: go build -v -ldflags '-s -w' -o leaf cmd/leaf/main.go
+    - name: Upload leaf Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: leaf
+        path: leaf
+        retention-days: 90
+        overwrite: true
+
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build Docker Image
+      run: make image
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Test 'leaf' binary and Docker image
+      run: make test
