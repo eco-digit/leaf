@@ -62,5 +62,6 @@ test: image
 		-p 9010:9010 \
 		-p 9090:9090 \
 		leaf:$(LEAF_DOCKER_TAG)_test
+	sleep 7
 	docker exec leaf_test env | sort
 	docker container stop leaf_test
