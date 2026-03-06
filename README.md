@@ -66,6 +66,8 @@ make image
     - LEAF_PROMETHEUS_PASS := passwd
     - LEAF_PROMETHEUS_USER := admin
 
+> Should you be willing to change some of the values please run `make image VARIABLE=value`
+
 ### Starting exporter manually
 
   * **Running the binary locally**
