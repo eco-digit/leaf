@@ -54,6 +54,18 @@ make
 make image
 ```
 
+  * **Environment Variables**
+
+    Here's a list of the current supported variables, and thei respective default values:
+
+    - DOCKER_DEBIAN_RELEASE := stable
+    - DOCKER_GOLANG_RELEASE := 1.26-alpine
+    - DOCKER_PROMETHEUS_RELEASE := 3.9.1
+    - LEAF_DOCKER_TAG := latest
+    - LEAF_PROMETHEUS := http://127.0.0.1:9090
+    - LEAF_PROMETHEUS_PASS := passwd
+    - LEAF_PROMETHEUS_USER := admin
+
 ### Starting exporter manually
 
   * **Running the binary locally**
@@ -69,6 +81,10 @@ make image
     ```
 
 ### Test 'leaf' in a container with Prometheus
+
+This depends on the `make image` target (but this dependency is sorted via `Makefile` already). A new image will be built with the `_test` suffix and it will be used to start a Prometheus instance directly on a container with `leaf`.
+
+Once all runs fine, the environment variables will be printed out.
 
 ```sh
 make test
