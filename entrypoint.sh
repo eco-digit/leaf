@@ -5,4 +5,11 @@ if [ -f /bin/prometheus ]; then
 fi
 sleep 3
 
-/bin/leaf --config /etc/leaf/config.yaml
+if [ -n $LEAF_DOCKER_ENV ]; then
+    /bin/leaf --config /etc/leaf/config.yaml
+else
+    /bin/leaf --config /etc/leaf/config.yaml &
+    sleep 7
+    env
+    kill -s SIGKILL 1
+fi

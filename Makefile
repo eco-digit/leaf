@@ -20,6 +20,7 @@ LEAF_DOCKER_BUILD_ARGS := \
 	--build-arg LEAF_PROMETHEUS=$(LEAF_PROMETHEUS) \
 	--build-arg LEAF_PROMETHEUS_PASS=$(LEAF_PROMETHEUS_PASS) \
 	--build-arg LEAF_PROMETHEUS_USER=$(LEAF_PROMETHEUS_USER)
+LEAF_DOCKER_ENV :=
 ######################################################################
 
 export DOCKER_DEBIAN_RELEASE
@@ -30,6 +31,7 @@ export DOCKER_TAG
 export LEAF_BIN
 export LEAF_CONFIG
 export LEAF_DOCKER_BUILD_ARGS
+export LEAF_DOCKER_ENV
 export LEAF_PROMETHEUS
 export LEAF_PROMETHEUS_PASS
 export LEAF_PROMETHEUS_USER
@@ -58,9 +60,8 @@ run-image: image
 test:
 	docker build -f $(DOCKER_DIR)/Dockerfile_test -t leaf:$(DOCKER_TAG)_test \
 		$(LEAF_DOCKER_BUILD_ARGS) .
-	docker run --rm --name leaf -it -d \
+	docker run --rm --name leaf_test -it -e LEAF_DOCKER_ENV=$(LEAF_DOCKER_ENV) -d \
 		-p 9010:9010 \
 		-p 9090:9090 \
 		leaf:$(DOCKER_TAG)_test
-	docker exec leaf env
-	docker container stop leaf
+	docker container stop leaf_test 2>/dev/null
