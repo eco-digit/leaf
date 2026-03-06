@@ -86,11 +86,11 @@ make image
 
 This depends on the `make image` target (but this dependency is sorted via `Makefile` already). A new image will be built with the `_test` suffix and it will be used to start a Prometheus instance directly on a container with `leaf`.
 
-Once all runs fine, the environment variables will be printed out.
-
 ```sh
 make test
 ```
+
+> Once all runs fine, the environment variables will be printed out.
 
 ### Cleaning binary artifact and Docker images
 
