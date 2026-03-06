@@ -3,18 +3,25 @@ ARG DOCKER_PROMETHEUS_RELEASE=3.9.1
 ARG LEAF_PROMETHEUS=http://127.0.0.1:9090
 ARG LEAF_PROMETHEUS_PASS=passwd
 ARG LEAF_PROMETHEUS_USER=admin
-######################################################################
 
 FROM golang:${DOCKER_GOLANG_RELEASE} AS builder
 COPY . /src
 WORKDIR /src
-RUN go build -ldflags '-s -w' -o leaf cmd/leaf/main.go
+RUN go build -ldflags "-s -w" -o leaf cmd/leaf/main.go
 ######################################################################
 
 FROM debian:stable AS runtime
 LABEL app=leaf
 LABEL org=osba
 
+ARG DOCKER_DEBIAN_RELEASE
+ARG DOCKER_GOLANG_RELEASE
+ARG DOCKER_PROMETHEUS_RELEASE
+ARG LEAF_PROMETHEUS
+ARG LEAF_PROMETHEUS_PASS
+ARG LEAF_PROMETHEUS_USER
+
+ENV DOCKER_DEBIAN_RELEASE=$DOCKER_DEBIAN_RELEASE
 ENV DOCKER_GOLANG_RELEASE=$DOCKER_GOLANG_RELEASE
 ENV DOCKER_PROMETHEUS_RELEASE=$DOCKER_PROMETHEUS_RELEASE
 ENV LEAF_PROMETHEUS=$LEAF_PROMETHEUS
@@ -30,7 +37,7 @@ COPY --from=builder /src/entrypoint.sh /.
 COPY --from=builder /src/internal/config/config.yaml /etc/leaf/.
 COPY --from=builder /src/leaf /bin/.
 
-RUN sed -i "s/%%PROMETHEUS%%/${LEAF_PROMETHEUS}/g" /etc/leaf/config.yaml
+RUN sed -i "s|%%PROMETHEUS%%|${LEAF_PROMETHEUS}|g" /etc/leaf/config.yaml
 RUN sed -i "s/%%PROMETHEUS_PASS%%/${LEAF_PROMETHEUS_PASS}/g" /etc/leaf/config.yaml
 RUN sed -i "s/%%PROMETHEUS_USER%%/${LEAF_PROMETHEUS_USER}/g" /etc/leaf/config.yaml
 
