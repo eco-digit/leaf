@@ -1,6 +1,9 @@
 ---
 name: build-binary-and-image
 
+on:
+  push
+
 jobs:
 
   build-binary:
