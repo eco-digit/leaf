@@ -34,7 +34,9 @@ EXPOSE 9090/tcp
 RUN mkdir -p /etc/leaf /etc/prometheus
 
 COPY --from=builder /src/entrypoint.sh /.
-COPY --from=builder /src/internal/config/config.yaml /etc/leaf/.
+COPY --from=builder /src/config/config.yaml /etc/leaf/.
+COPY --from=builder /src/config/infrastructure.yaml /etc/leaf/.
+COPY --from=builder /src/config/profile.yaml /etc/leaf/.
 COPY --from=builder /src/leaf /bin/.
 
 RUN sed -i "s|%%PROMETHEUS%%|${LEAF_PROMETHEUS}|g" /etc/leaf/config.yaml
