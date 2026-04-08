@@ -1,0 +1,6 @@
+---
+prometheus:
+   url: "http://localhost:9091"
+   username: ""
+   password: ""
+

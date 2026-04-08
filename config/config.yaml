@@ -1,0 +1,5 @@
+---
+prometheus:
+  url: "%%PROMETHEUS%%"
+  username: "%%PROMETHEUS_USER%%"
+  password: "%%PROMETHEUS_PASS%%"
