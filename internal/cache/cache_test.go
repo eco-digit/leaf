@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"testing"
 	"time"
 
 	"github.com/OSBA-eco-digit/leaf/internal/model"
@@ -20,4 +21,17 @@ func makeResults(n int) model.ResultSet {
 		}
 	}
 	return rs
+}
+
+func TestNewCacheIsEmpty(t *testing.T) {
+	c := New()
+	if !c.IsEmpty() {
+		t.Error("new cache should be empty")
+	}
+	if snap := c.Snapshot(); snap != nil {
+		t.Errorf("Snapshot cache empty: got %v, wanted nil", snap)
+	}
+	if !c.LastUpdated().IsZero() {
+		t.Error("LastUpdate on empty cache should be zero")
+	}
 }
