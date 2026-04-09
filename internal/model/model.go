@@ -62,6 +62,11 @@ func (rs ResultSet) FilterByPhase(p ImpactPhase) ResultSet {
 	return rs.filter(func(r ImpactResult) bool { return r.ImpactPhase == p })
 }
 
+// FilterByCategory returns matching category.
+func (rs ResultSet) FilterByCategory(c Category) ResultSet {
+	return rs.filter(func(r ImpactResult) bool { return r.Category == c })
+}
+
 func (rs ResultSet) filter(keep func(ImpactResult) bool) ResultSet {
 	out := make(ResultSet, 0, len(rs))
 	for _, r := range rs {

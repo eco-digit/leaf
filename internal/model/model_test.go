@@ -84,3 +84,22 @@ func TestFilterByPhase(t *testing.T) {
 		t.Errorf("FilterByPhase(total): got %d, want 2", len(total))
 	}
 }
+
+func TestFilterByCategory(t *testing.T) {
+	rs := buildTestSet()
+
+	gwp := rs.FilterByCategory(CategoryGWP)
+	if len(gwp) != 3 {
+		t.Errorf("FilterByCategory(gwp): got %d, want 3", len(gwp))
+	}
+
+	water := rs.FilterByCategory(CategoryWater)
+	if len(water) != 1 {
+		t.Errorf("FilterByCategory(water): got %d, want 1", len(water))
+	}
+
+	energy := rs.FilterByCategory(CategoryEnergy)
+	if len(energy) != 1 {
+		t.Errorf("FilterByCategory(energy): got %d, want 1", len(energy))
+	}
+}
