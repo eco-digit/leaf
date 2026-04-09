@@ -87,6 +87,13 @@ func (rs ResultSet) FilterByDevice(device string) ResultSet {
 	})
 }
 
+// FilterByProject returns results matching an OpenStack project ID.
+func (rs ResultSet) FilterByProject(projectID string) ResultSet {
+	return rs.filter(func(r ImpactResult) bool {
+		return r.ProjectID == projectID
+	})
+}
+
 func (rs ResultSet) filter(keep func(ImpactResult) bool) ResultSet {
 	out := make(ResultSet, 0, len(rs))
 	for _, r := range rs {
