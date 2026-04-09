@@ -32,6 +32,7 @@ const (
 	CategoryEnergy Category = "energy"
 )
 
+// ImpactResult is a single calculated metric record produced by the Model Calculator.
 type ImpactResult struct {
 	Subject     SubjectType
 	Provider    string
@@ -48,10 +49,17 @@ type ImpactResult struct {
 	PeriodHours int
 }
 
+// ResultSet is an ordered collection of ImpactResult records produced by a  single calculation cycle.
 type ResultSet []ImpactResult
 
+// FilterBySubject returns results matching the given subject type.
 func (rs ResultSet) FilterBySubject(s SubjectType) ResultSet {
 	return rs.filter(func(r ImpactResult) bool { return r.Subject == s })
+}
+
+// FilterByPhase returns results matching the given impact phase.
+func (rs ResultSet) FilterByPhase(p ImpactPhase) ResultSet {
+	return rs.filter(func(r ImpactResult) bool { return r.ImpactPhase == p })
 }
 
 func (rs ResultSet) filter(keep func(ImpactResult) bool) ResultSet {

@@ -65,3 +65,22 @@ func TestFilterBySubject(t *testing.T) {
 		t.Errorf("FilterBySubject(tenant): got %d, want 2", len(tenantResults))
 	}
 }
+
+func TestFilterByPhase(t *testing.T) {
+	rs := buildTestSet()
+
+	embodied := rs.FilterByPhase(PhaseEmbodied)
+	if len(embodied) != 3 {
+		t.Errorf("FilterByPhase(embodied): got %d, want 3", len(embodied))
+	}
+
+	operational := rs.FilterByPhase(PhaseOperational)
+	if len(operational) != 2 {
+		t.Errorf("FilterByPhase(operational): got %d, want 2", len(operational))
+	}
+
+	total := rs.FilterByPhase(PhaseTotal)
+	if len(total) != 2 {
+		t.Errorf("FilterByPhase(total): got %d, want 2", len(total))
+	}
+}
