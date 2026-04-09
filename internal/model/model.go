@@ -31,3 +31,35 @@ const (
 	CategoryWater  Category = "water"
 	CategoryEnergy Category = "energy"
 )
+
+type ImpactResult struct {
+	Subject     SubjectType
+	Provider    string
+	Datacenter  string
+	Component   string
+	Device      string
+	ProjectID   string
+	ProjectName string
+	ImpactPhase ImpactPhase
+	Category    Category
+	Value       float64
+	Unit        string
+	Timestamp   time.Time
+	PeriodHours int
+}
+
+type ResultSet []ImpactResult
+
+func (rs ResultSet) FilterBySubject(s SubjectType) ResultSet {
+	return rs.filter(func(r ImpactResult) bool { return r.Subject == s })
+}
+
+func (rs ResultSet) filter(keep func(ImpactResult) bool) ResultSet {
+	out := make(ResultSet, 0, len(rs))
+	for _, r := range rs {
+		if keep(r) {
+			out = append(out, r)
+		}
+	}
+	return out
+}
