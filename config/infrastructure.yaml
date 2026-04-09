@@ -2,10 +2,6 @@ version: 1
 environment:
   id: ocp-scs
   name: ScaleUp-OCP
-  topology:
-    racks:
-      - id: rack01
-        label: Rack-01
 
 devices:
   - id: compute01
