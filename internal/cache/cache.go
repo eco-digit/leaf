@@ -20,3 +20,29 @@ type Cache struct {
 func New() *Cache {
 	return &Cache{}
 }
+
+// Snapshot return a copy of the ResultsSet.
+func (c *Cache) Snapshot() model.ResultSet {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if len(c.results) == 0 {
+		return nil
+	}
+	snap := make(model.ResultSet, len(c.results))
+	copy(snap, c.results)
+	return snap
+}
+
+// LastUpdated reutrns time of most recent successful update call.
+func (c *Cache) LastUpdated() time.Time {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.lastUpdated
+}
+
+// IsEmpty shows if cache is empty.
+func (c *Cache) IsEmpty() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return len(c.results) == 0
+}
