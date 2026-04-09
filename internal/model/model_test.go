@@ -103,3 +103,17 @@ func TestFilterByCategory(t *testing.T) {
 		t.Errorf("FilterByCategory(energy): got %d, want 1", len(energy))
 	}
 }
+
+func TestFilterByDevice(t *testing.T) {
+	rs := buildTestSet()
+
+	compute01 := rs.FilterByDevice("compute01")
+	if len(compute01) != 2 {
+		t.Errorf("FilterByDevice(compute01): got %d, want 2", len(compute01))
+	}
+
+	none := rs.FilterByDevice("nonexistent")
+	if len(none) != 0 {
+		t.Errorf("FilterByDevice(nonexistent): got %d, want 0", len(none))
+	}
+}

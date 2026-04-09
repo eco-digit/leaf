@@ -54,17 +54,37 @@ type ResultSet []ImpactResult
 
 // FilterBySubject returns results matching the given subject type.
 func (rs ResultSet) FilterBySubject(s SubjectType) ResultSet {
-	return rs.filter(func(r ImpactResult) bool { return r.Subject == s })
+	return rs.filter(func(r ImpactResult) bool {
+		return r.Subject == s
+	})
 }
 
 // FilterByPhase returns results matching the given impact phase.
 func (rs ResultSet) FilterByPhase(p ImpactPhase) ResultSet {
-	return rs.filter(func(r ImpactResult) bool { return r.ImpactPhase == p })
+	return rs.filter(func(r ImpactResult) bool {
+		return r.ImpactPhase == p
+	})
 }
 
 // FilterByCategory returns matching category.
 func (rs ResultSet) FilterByCategory(c Category) ResultSet {
-	return rs.filter(func(r ImpactResult) bool { return r.Category == c })
+	return rs.filter(func(r ImpactResult) bool {
+		return r.Category == c
+	})
+}
+
+// FilterByComponent returns results matching a set component label.
+func (rs ResultSet) FilterByComponent(component string) ResultSet {
+	return rs.filter(func(r ImpactResult) bool {
+		return r.Component == component
+	})
+}
+
+// FilterByDevice returns results matching a device ID
+func (rs ResultSet) FilterByDevice(device string) ResultSet {
+	return rs.filter(func(r ImpactResult) bool {
+		return r.Device == device
+	})
 }
 
 func (rs ResultSet) filter(keep func(ImpactResult) bool) ResultSet {
