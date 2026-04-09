@@ -1,3 +1,4 @@
+// Package config handles loading and validating Leaf's configuration files.
 package config
 
 import (
