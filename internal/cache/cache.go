@@ -42,7 +42,7 @@ func (c *Cache) Update(rs model.ResultSet) {
 	c.lastUpdated = time.Now()
 }
 
-// LastUpdated reutrns time of most recent successful update call.
+// LastUpdated returns time of most recent successful update call.
 func (c *Cache) LastUpdated() time.Time {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
