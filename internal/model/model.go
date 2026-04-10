@@ -3,7 +3,7 @@ package model
 
 import "time"
 
-// SubjectType identifies what an ImpactResult is about
+// SubjectType identifies what an ImpactResult is about.
 type SubjectType string
 
 const (
@@ -12,7 +12,7 @@ const (
 	SubjectTenant   SubjectType = "tenant"
 )
 
-// ImpactPhase classifies whether a result reflects operational or embodied impact
+// ImpactPhase classifies whether a result reflects operational or embodied impact.
 type ImpactPhase string
 
 const (
@@ -21,7 +21,7 @@ const (
 	PhaseTotal       ImpactPhase = "total"
 )
 
-// Category is one of four environmental impact categories plus energy
+// Category is one of four environmental impact categories plus energy.
 type Category string
 
 const (
@@ -80,7 +80,7 @@ func (rs ResultSet) FilterByComponent(component string) ResultSet {
 	})
 }
 
-// FilterByDevice returns results matching a device ID
+// FilterByDevice returns results matching a device ID.
 func (rs ResultSet) FilterByDevice(device string) ResultSet {
 	return rs.filter(func(r ImpactResult) bool {
 		return r.Device == device
