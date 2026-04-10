@@ -33,6 +33,15 @@ func (c *Cache) Snapshot() model.ResultSet {
 	return snap
 }
 
+// Update replaces stored ResultsSet with rs and records the time as last Updated timestamp.
+// TODO this will be called by the model calculator after each succ. calc cycle.
+func (c *Cache) Update(rs model.ResultSet) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.results = rs
+	c.lastUpdated = time.Now()
+}
+
 // LastUpdated reutrns time of most recent successful update call.
 func (c *Cache) LastUpdated() time.Time {
 	c.mu.RLock()
