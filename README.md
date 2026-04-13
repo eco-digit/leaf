@@ -15,6 +15,16 @@ Before proceeding any further, ensure you have the necessary softwares to use th
 
 Here'a a `tree` of files present so far:
 
+## Local Deployment for testing while working on the codebase
+Connect to prometheus via port forwarding:
+1. Start port forwarding from local host to a running prometheus server:
+`ssh -i ~/.ssh/id_ed25519 -L 9091::9091 user@server`
+
+2. Start leaf, setting the config path flag:
+`go run ./cmd/leaf --config config/config.yaml.sample`
+
+3. Check /metrics at http://localhost:9010/metrics for embodied impact metrics
+
 ```
 .
 ├── bin
