@@ -1,4 +1,9 @@
 ---
+server:
+  addr: ":9010"
+infrastructure:
+  infra_path: "config/infrastructure.yaml"
+  profile_path: "config/profile.yaml"
 prometheus:
    url: "http://localhost:9091"
    username: ""
