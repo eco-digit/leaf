@@ -3,9 +3,12 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 
 	"github.com/OSBA-eco-digit/leaf/internal/cache"
 	"github.com/OSBA-eco-digit/leaf/internal/config"
+	"github.com/OSBA-eco-digit/leaf/internal/embodied"
+	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
 	"github.com/OSBA-eco-digit/leaf/internal/server"
 )
 
@@ -18,7 +21,23 @@ func main() {
 		log.Fatalf("load config: %v", err)
 	}
 
+	infra, err := infrastructure.Load(cfg.Infrastructure.InfraPath, cfg.Infrastructure.ProfilePath)
+	if err != nil {
+		log.Fatalf("load infrastructure: %v", err)
+	}
+
 	c := cache.New()
+
+	// Pass cache with static embodied metrics computed at startupl.
+	rs, err := embodied.Calculate(infra, time.Now().Truncate(time.Hour))
+	if err != nil {
+		log.Fatalf("calculate embodied: %v", err)
+	}
+	if err := embodied.Validate(rs); err != nil {
+		log.Fatalf("validate embodied: %v", err)
+	}
+	c.Update(rs)
+	log.Printf("Seeded cache with %d embodied impact records", len(rs))
 
 	addr := cfg.Server.Addr
 	if addr == "" {
