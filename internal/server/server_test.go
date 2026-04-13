@@ -107,3 +107,46 @@ func TestMetricsHandler_TenantLabels(t *testing.T) {
 		}
 	}
 }
+
+func TestHealthHandler_EmptyCache(t *testing.T) {
+	code, body := get(t, server.New(cache.New(), "").Handler(), "/health")
+	if code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", code)
+	}
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("unmarshal health response: %v", err)
+	}
+	if resp["status"] != "no_data" {
+		t.Errorf("status = %v, want no_data", resp["status"])
+	}
+	if resp["cache_empty"] != true {
+		t.Errorf("cache_empty = %v, want true", resp["cache_empty"])
+	}
+}
+
+func TestHealthHandler_PopulatedCache(t *testing.T) {
+	rs := model.ResultSet{{
+		Subject:     model.SubjectProvider,
+		Datacenter:  "dc1",
+		Component:   "total",
+		ImpactPhase: model.PhaseEmbodied,
+		Category:    model.CategoryGWP,
+		Value:       1.0,
+		Timestamp:   fixedTS,
+	}}
+	code, body := get(t, server.New(seedCache(rs), "").Handler(), "/health")
+	if code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", code)
+	}
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("unmarshal health response: %v", err)
+	}
+	if resp["status"] != "ok" {
+		t.Errorf("status = %v, want ok", resp["status"])
+	}
+	if resp["cache_empty"] != false {
+		t.Errorf("cache_empty = %v, want false", resp["cache_empty"])
+	}
+}
