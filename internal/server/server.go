@@ -31,6 +31,7 @@ func New(c *cache.Cache, addr string) *Server {
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/metrics", s.metricsHandler)
+	mux.HandleFunc("/health", s.healthHandler)
 	return mux
 }
 
