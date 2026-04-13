@@ -4,6 +4,7 @@ package embodied
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
@@ -115,4 +116,56 @@ func Calculate(infra *infrastructure.Infrastructure, ts time.Time) (model.Result
 	}
 
 	return rs, nil
+}
+
+// Validate checks that embodied results are internally consistent across the
+// aggregation hierarchy. We check: device -> component -> provider total For
+// each impact category:
+// 1. Sum of all devices valu of a coomponent must be
+// equal the total provider component value.
+// 2. Sum of all component level
+// provider value equal provider total.
+func Validate(rs model.ResultSet) error {
+	const tol = 1e-6
+
+	embodied := rs.FilterByPhase(model.PhaseEmbodied)
+
+	// Expected component sums from device records.
+	// deviceSum[component][category] = sum of device values
+	deviceSum := make(map[string]map[model.Category]float64)
+	for _, r := range embodied.FilterBySubject(model.SubjectDevice) {
+		if deviceSum[r.Component] == nil {
+			deviceSum[r.Component] = make(map[model.Category]float64)
+		}
+		deviceSum[r.Component][r.Category] += r.Value
+	}
+
+	// Check component provider records against device sums.
+	componentSum := make(map[model.Category]float64)
+	for _, r := range embodied.FilterBySubject(model.SubjectProvider) {
+		if r.Component == "total" {
+			continue
+		}
+		expected := deviceSum[r.Component][r.Category]
+		if math.Abs(r.Value-expected) > tol {
+			return fmt.Errorf(
+				"embodied component %s/%s: provider value %.6f != sum of devices %.6f (diff %.6f)",
+				r.Component, r.Category, r.Value, expected, r.Value-expected,
+			)
+		}
+		componentSum[r.Category] += r.Value
+	}
+
+	// Check total provider records against component sums.
+	for _, r := range embodied.FilterBySubject(model.SubjectProvider).FilterByComponent("total") {
+		expected := componentSum[r.Category]
+		if math.Abs(r.Value-expected) > tol {
+			return fmt.Errorf(
+				"embodied total/%s: provider value %.6f != sum of components %.6f (diff %.6f)",
+				r.Category, r.Value, expected, r.Value-expected,
+			)
+		}
+	}
+
+	return nil
 }

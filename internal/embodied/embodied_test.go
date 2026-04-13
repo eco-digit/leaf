@@ -192,3 +192,71 @@ func TestCalculate_RecordCount(t *testing.T) {
 		t.Errorf("total records: got %d, want 4", len(totalRecords))
 	}
 }
+
+func TestCalculate_ComponentAggregation(t *testing.T) {
+	infra := loadTestInfra(t)
+	ts := time.Now().Truncate(time.Hour)
+
+	rs, err := Calculate(infra, ts)
+	if err != nil {
+		t.Fatalf("Calculate: %v", err)
+	}
+
+	perDevice := 20803.838 / (4.0 * 8760)
+	wantComputeGWP := 2 * perDevice
+
+	computeGWP := rs.
+		FilterBySubject(model.SubjectProvider).
+		FilterByComponent("compute").
+		FilterByPhase(model.PhaseEmbodied).
+		FilterByCategory(model.CategoryGWP)
+
+	if len(computeGWP) != 1 {
+		t.Fatalf("compute GWP component records: got %d, want 1", len(computeGWP))
+	}
+	if !approxEqual(computeGWP[0].Value, wantComputeGWP, 1e-9) {
+		t.Errorf("compute GWP component = %.10f, want %.10f", computeGWP[0].Value, wantComputeGWP)
+	}
+}
+
+// TestValidate_PassesForCorrectResultSet Calculate test set and validate
+func TestValidate_PassesForCorrectResultSet(t *testing.T) {
+	infra := loadTestInfra(t)
+	ts := time.Now().Truncate(time.Hour)
+
+	rs, err := Calculate(infra, ts)
+	if err != nil {
+		t.Fatalf("Calculate: %v", err)
+	}
+
+	if err := Validate(rs); err != nil {
+		t.Errorf("Validate on correct ResultSet: %v", err)
+	}
+}
+
+func TestValidate_DetectsComponentMismatch(t *testing.T) {
+	infra := loadTestInfra(t)
+	ts := time.Now().Truncate(time.Hour)
+
+	rs, err := Calculate(infra, ts)
+	if err != nil {
+		t.Fatalf("Calculate: %v", err)
+	}
+
+	// change a component provider record so it no longer matches device sum
+	tampered := make(model.ResultSet, len(rs))
+	copy(tampered, rs)
+	for i, r := range tampered {
+		if r.Subject == model.SubjectProvider &&
+			r.Component == "compute" &&
+			r.Category == model.CategoryGWP &&
+			r.ImpactPhase == model.PhaseEmbodied {
+			tampered[i].Value += 9999
+			break
+		}
+	}
+
+	if err := Validate(tampered); err == nil {
+		t.Error("Validate: expected error for tampered component record, got nil")
+	}
+}
