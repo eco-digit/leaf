@@ -103,12 +103,12 @@ run-image: image
 		-p 9090:9090 \
 		$(LEAF_DOCKER_TAG)
 
-test test-image: image
+test test-image:
 	docker build -f $(DOCKER_DIR)/Dockerfile_test -t $(LEAF_DOCKER_TAG)_test $(LEAF_DOCKER_BUILD_ARGS) .
 	docker run --rm --name leaf_test -it -d \
 		-p 9010:9010 \
 		-p 9090:9090 \
-		$(LEAF_DOCKER_TAG)
+		$(LEAF_DOCKER_TAG)_test
 	sleep 7
 	docker exec leaf_test env | sort
 	docker container stop leaf_test
