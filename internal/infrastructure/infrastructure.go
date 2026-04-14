@@ -10,6 +10,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// MetricSourceDef defines a single Prometheus query source.
+type MetricSourceDef struct {
+	Query         string `yaml:"query"`
+	MatchLabel    string `yaml:"match_label"`
+	MatchStrategy string `yaml:"match_strategy"`
+	VMLabel       string `yaml:"vm_label"`
+	Unit          string `yaml:"unit"`
+}
+
 type infraFile struct {
 	Version     int         `yaml:"version"`
 	Environment Environment `yaml:"environment"`
