@@ -2,8 +2,6 @@
 name: test (binary and image)
 
 on:
-  push
-
   workflow_run:
     workflows: ["build-image"]
     types:
