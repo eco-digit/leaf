@@ -1,13 +1,10 @@
 name: publish-image
 
 on:
-  workflow_run:
-    workflows: ["test (binary and image)"]
-    types:
-      - completed
+  push
 
 jobs:
-  build-and-push:
+  publish-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,20 +32,6 @@ jobs:
           tags: |
             type=sha,prefix=
             type=raw,value=latest
-
-#     - name: Build and push
-#       uses: docker/build-push-action@v6
-#       with:
-#         context: .
-#         platforms: linux/amd64
-#         push: true
-#         tags: ${{ steps.meta.outputs.tags }}
-#         labels: ${{ steps.meta.outputs.labels }}
-#         build-args: |
-#           GIT_COMMIT=${{ github.sha }}
-#           BUILD_TIME=${{ github.event.head_commit.timestamp }}
-#         cache-from: type=gha
-#         cache-to: type=gha,mode=max
 
       - name: Build Docker Image
         run: make image

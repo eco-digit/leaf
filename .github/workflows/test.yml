@@ -2,16 +2,11 @@
 name: test (binary and image)
 
 on:
-  workflow_run:
-    workflows: ["build-image"]
-    types:
-      - completed
+  push
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - uses: actions/checkout@v4
     - name: Test 'leaf' binary and Docker image
