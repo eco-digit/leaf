@@ -1,4 +1,38 @@
 version: 1
+
+metric_sources:
+  kepler_node_idle:
+    query: 'increase(kepler_node_cpu_idle_joules_total{zone="package"}[{{ .Window }}])'
+    match_label: "node_name"
+    unit: "joules"
+
+  kepler_node_active:
+    query: 'increase(kepler_node_cpu_active_joules_total{zone="package"}[{{ .Window }}])'
+    match_label: "node_name"
+    unit: "joules"
+
+  kepler_vm:
+    query: 'increase(kepler_vm_cpu_joules_total{zone="package"}[{{ .Window }}])'
+    match_label: "node_name"
+    vm_label: "vm_name"
+    unit: "joules"
+
+  bmc:
+    query: 'avg_over_time(reading_watts{job="bmc-power"}[{{ .Window }}])'
+    match_label: "instance"
+    match_strategy: "instance_to_device"
+    unit: "watts"
+
+  rack_input_power:
+    query: 'all_psus_total_input_power{job="powershelf-power"}'
+    match_label: "instance"
+    unit: "watts"
+
+  rack_output_power:
+    query: 'all_psus_total_output_power{job="powershelf-power"}'
+    match_label: "instance"
+    unit: "watts"
+
 environment:
   id: ocp-scs
   name: ScaleUp-OCP
