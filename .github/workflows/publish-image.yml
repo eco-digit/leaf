@@ -50,4 +50,4 @@ jobs:
 #         cache-to: type=gha,mode=max
 
       - name: Push Docker Image
-        run: docker push ghcr.io/${{ github.repository }}/leaf:latest
+        run: docker push ghcr.io/${{ github.repository }}
