@@ -8,3 +8,5 @@ prometheus:
   url: "%%PROMETHEUS%%"
   username: "%%PROMETHEUS_USER%%"
   password: "%%PROMETHEUS_PASS%%"
+orchestrator:
+  reporting_interval: "1h"
