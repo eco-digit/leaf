@@ -23,6 +23,10 @@ type Config struct {
 		InfraPath   string `yaml:"infra_path"`
 		ProfilePath string `yaml:"profile_path"`
 	} `yaml:"infrastructure"`
+
+	Orchestrator struct {
+		ReportingInterval string `yaml:"reporting_interval"`
+	} `yaml:"orchestrator"`
 }
 
 func LoadConfig(path string) (*Config, error) {
