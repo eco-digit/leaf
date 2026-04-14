@@ -1,12 +1,10 @@
 name: publish-image
 
 on:
-  push:
-    branches:
-      - creating-leaf-iac
+  push
 
   workflow_run:
-    workflows: ["build-image"]
+    workflows: ["test (binary and image)"]
     types:
       - completed
 
