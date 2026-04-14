@@ -1,6 +1,7 @@
 package server_test
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
