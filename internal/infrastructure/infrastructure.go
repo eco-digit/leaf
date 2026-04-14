@@ -20,9 +20,10 @@ type MetricSourceDef struct {
 }
 
 type infraFile struct {
-	Version     int         `yaml:"version"`
-	Environment Environment `yaml:"environment"`
-	Devices     []device    `yaml:"devices"`
+	Version       int                        `yaml:"version"`
+	Environment   Environment                `yaml:"environment"`
+	Devices       []device                   `yaml:"devices"`
+	MetricSources map[string]MetricSourceDef `yaml:"metric_sources"`
 }
 
 // Environment describes the logical data-center environment.
