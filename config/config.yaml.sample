@@ -8,4 +8,5 @@ prometheus:
    url: "http://localhost:9091"
    username: ""
    password: ""
-
+orchestrator:
+  reporting_interval: "1h"
