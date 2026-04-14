@@ -1,4 +1,4 @@
-name: Push Image to Registry
+name: publish-image
 
 on:
   push:
@@ -35,16 +35,19 @@ jobs:
             type=sha,prefix=
             type=raw,value=latest
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            GIT_COMMIT=${{ github.sha }}
-            BUILD_TIME=${{ github.event.head_commit.timestamp }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+#     - name: Build and push
+#       uses: docker/build-push-action@v6
+#       with:
+#         context: .
+#         platforms: linux/amd64
+#         push: true
+#         tags: ${{ steps.meta.outputs.tags }}
+#         labels: ${{ steps.meta.outputs.labels }}
+#         build-args: |
+#           GIT_COMMIT=${{ github.sha }}
+#           BUILD_TIME=${{ github.event.head_commit.timestamp }}
+#         cache-from: type=gha
+#         cache-to: type=gha,mode=max
+
+      - name: Push Docker Image
+        run: docker push ghcr.io/${{ github.repository }}/leaf:latest
