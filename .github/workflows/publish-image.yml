@@ -5,6 +5,11 @@ on:
     branches:
       - creating-leaf-iac
 
+  workflow_run:
+    workflows: ["build-image"]
+    types:
+      - completed
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
