@@ -103,7 +103,7 @@ run-image: image
 		-p 9090:9090 \
 		$(LEAF_DOCKER_TAG)
 
-test test-image:
+test test-image: image
 	docker build -f $(DOCKER_DIR)/Dockerfile_test -t $(LEAF_DOCKER_TAG)_test $(LEAF_DOCKER_BUILD_ARGS) .
 	docker run --rm --name leaf_test -it -d \
 		-p 9010:9010 \
