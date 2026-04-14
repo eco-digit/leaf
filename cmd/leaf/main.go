@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
-	"github.com/OSBA-eco-digit/leaf/internal/config"
-	"github.com/OSBA-eco-digit/leaf/internal/exporter"
-	"github.com/OSBA-eco-digit/leaf/internal/promclient"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
-	"net/http"
+	"time"
+
+	"github.com/OSBA-eco-digit/leaf/internal/cache"
+	"github.com/OSBA-eco-digit/leaf/internal/config"
+	"github.com/OSBA-eco-digit/leaf/internal/embodied"
+	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
+	"github.com/OSBA-eco-digit/leaf/internal/server"
 )
 
 func main() {
@@ -17,18 +18,35 @@ func main() {
 
 	cfg, err := config.LoadConfig(*configPath)
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf("load config: %v", err)
 	}
 
-	client, err := promclient.NewClient(cfg.Prometheus.URL, cfg.Prometheus.Username, cfg.Prometheus.Password)
+	infra, err := infrastructure.Load(cfg.Infrastructure.InfraPath, cfg.Infrastructure.ProfilePath)
 	if err != nil {
-		log.Fatalf("Failed to create Prometheus client: %v", err)
+		log.Fatalf("load infrastructure: %v", err)
 	}
 
-	leafExporter := exporter.NewLeafExporter(client)
-	prometheus.MustRegister(leafExporter)
+	c := cache.New()
 
-	http.Handle("/metrics", promhttp.Handler())
-	log.Println("Starting Leaf exporter on :9010 ...")
-	log.Fatal(http.ListenAndServe("localhost:9010", nil))
+	// Pass cache with static embodied metrics computed at startupl.
+	rs, err := embodied.Calculate(infra, time.Now().Truncate(time.Hour))
+	if err != nil {
+		log.Fatalf("calculate embodied: %v", err)
+	}
+	if err := embodied.Validate(rs); err != nil {
+		log.Fatalf("validate embodied: %v", err)
+	}
+	c.Update(rs)
+	log.Printf("Seeded cache with %d embodied impact records", len(rs))
+
+	addr := cfg.Server.Addr
+	if addr == "" {
+		addr = ":9010"
+	}
+
+	log.Printf("Starting Leaf on %s", addr)
+	srv := server.New(c, addr)
+	if err := srv.Start(); err != nil {
+		log.Fatalf("server: %v", err)
+	}
 }
