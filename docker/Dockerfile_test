@@ -17,7 +17,7 @@ ARG LEAF_PROMETHEUS_PASS
 ARG LEAF_PROMETHEUS_USER
 ######################################################################
 
-FROM leaf AS runtime
+FROM $LEAF_DOCKER_TAG AS runtime
 LABEL app=leaf
 LABEL org=osba
 
