@@ -54,5 +54,8 @@ jobs:
 #         cache-from: type=gha
 #         cache-to: type=gha,mode=max
 
+      - name: Build Docker Image
+        run: make image
+
       - name: Push Docker Image
         run: docker push ghcr.io/${{ github.repository }}
