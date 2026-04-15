@@ -25,6 +25,7 @@ Connect to prometheus via port forwarding:
 
 3. Check /metrics at http://localhost:9010/metrics for embodied impact metrics
 
+4. Test Collector: `go run ./cmd/leaf -config config/config.yaml.sample -collect-once`
 ```
 .
 ├── bin
