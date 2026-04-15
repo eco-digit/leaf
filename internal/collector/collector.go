@@ -109,7 +109,6 @@ func collectSource(
 				d.Metrics[name] = value
 			}
 		} else {
-			// Sample didn't match any device — treat as rack/infrastructure-level.
 			rack := raw.Racks[labelVal]
 			if rack == nil {
 				rack = &RackRaw{Metrics: make(map[string]float64)}
@@ -122,11 +121,11 @@ func collectSource(
 	return nil
 }
 
-// buildDeviceIndex returns a map from lower-cased device ID to device ID.
+// buildDeviceIndex returns a map from device ID to device ID.
 func buildDeviceIndex(devices []infrastructure.ResolvedDevice) map[string]string {
 	idx := make(map[string]string, len(devices))
 	for _, d := range devices {
-		idx[strings.ToLower(d.ID)] = d.ID
+		idx[d.ID] = d.ID
 	}
 	return idx
 }
@@ -148,11 +147,8 @@ func matchDevice(
 
 // matchInstanceToDevice maps a BMC Prometheus instance label to a device ID.
 //
-// The instance is a Redfish URL of the form:
-//
-//	https://<device_id>.bmc.<domain>/redfish/v1/something something
-//
-// The device ID is the first DNS label of the hostname.
+//	 instance is a Redfish URL:
+//		https://<device_id>.bmc.<domain>/redfish/v1/something something
 func matchInstanceToDevice(instance string, devices []infrastructure.ResolvedDevice) string {
 	u, err := url.Parse(instance)
 	if err != nil || u.Hostname() == "" {
