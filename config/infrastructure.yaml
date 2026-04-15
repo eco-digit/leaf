@@ -1,104 +1,85 @@
+---
 version: 1
-
 metric_sources:
   kepler_node_idle:
     query: 'increase(kepler_node_cpu_idle_joules_total{zone="package"}[{{ .Window }}])'
-    match_label: "node_name"
-    unit: "joules"
-
+    match_label: instance
+    unit: joules
   kepler_node_active:
     query: 'increase(kepler_node_cpu_active_joules_total{zone="package"}[{{ .Window }}])'
-    match_label: "node_name"
-    unit: "joules"
-
+    match_label: instance
+    unit: joules
   kepler_vm:
     query: 'increase(kepler_vm_cpu_joules_total{zone="package"}[{{ .Window }}])'
-    match_label: "node_name"
-    vm_label: "vm_name"
-    unit: "joules"
-
+    match_label: instance
+    vm_label: vm_id
+    unit: joules
   bmc:
-    query: 'avg_over_time(reading_watts{job="bmc-power"}[{{ .Window }}])'
-    match_label: "instance"
-    match_strategy: "instance_to_device"
-    unit: "watts"
-
+    query: 'avg_over_time(reading_watts[{{ .Window }}])'
+    match_label: instance
+    match_strategy: hostname_extract
+    unit: watts
   rack_input_power:
     query: 'all_psus_total_input_power{job="powershelf-power"}'
-    match_label: "instance"
-    unit: "watts"
-
+    match_label: instance
+    unit: watts
   rack_output_power:
     query: 'all_psus_total_output_power{job="powershelf-power"}'
-    match_label: "instance"
-    unit: "watts"
-
+    match_label: instance
+    unit: watts
 environment:
   id: ocp-scs
   name: ScaleUp-OCP
-
 devices:
   - id: compute01
     role: compute
     profile: compute
     rack: rack01
-
   - id: compute02
     role: compute
     profile: compute
     rack: rack01
-
   - id: compute03
     role: compute
     profile: compute
     rack: rack01
-
   - id: compute04
     role: compute
     profile: compute
     rack: rack01
-
   - id: controller01
     role: controller
     profile: controller
     rack: rack01
-
   - id: controller02
     role: controller
     profile: controller
     rack: rack01
-
   - id: controller03
     role: controller
     profile: controller
     rack: rack01
-
   - id: storage01
     role: storage
     profile: storage
     rack: rack01
-
   - id: storage02
     role: storage
     profile: storage
     rack: rack01
-
   - id: storage03
     role: storage
     profile: storage
     rack: rack01
-
   - id: manager01
     role: manager
     profile: manager
     rack: rack01
-
   - id: switch01
     role: network
     profile: network-switch
     rack: rack01
-
-  - id: mgmt-switch01
+  - id: mgmt_switch01
     role: network
     profile: management-switch
     rack: rack01
