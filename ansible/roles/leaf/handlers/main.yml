@@ -1,22 +1,25 @@
 ---
-- name: Enable and Start sleaf_cluster_stack
+- name: Enable and Start leaf
+  become: true
   systemd:
-    name: "{{ sleaf_cluster_stack_service }}"
+    name: "{{ leaf_service }}"
     enabled: true
     state: started
     daemon_reload: true
-  listen: Enable sleaf_cluster_stack
+  listen: Enable leaf
 
-- name: Restart sleaf_cluster_stack
+- name: Restart leaf
+  become: true
   systemd:
-    name: "{{ sleaf_cluster_stack_service }}"
+    name: "{{ leaf_service }}"
     enabled: true
     state: restarted
     daemon_reload: true
-  listen: Restart sleaf_cluster_stack
+  listen: Restart leaf
 ######################################################################
 
 - name: Restart Logrotate
+  become: true
   systemd:
     name: logrotate.service
     enabled: true

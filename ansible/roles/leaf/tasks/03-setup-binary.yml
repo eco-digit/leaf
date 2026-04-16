@@ -1,5 +1,6 @@
 ---
 - name: Clone "leaf" repository from "{{ leaf_repo }}"
+  become: true
   git:
     repo: "{{ leaf_repo }}"
     dest: "{{ leaf_src_dir }}"
@@ -10,6 +11,7 @@
   ignore_errors: true
 
 - name: Build the "leaf" binary
+  become: true
   command:
     chdir: "{{ leaf_src_dir }}"
     cmd: "make"
@@ -20,6 +22,7 @@
   register: leaf_bin_built
 
 - name: Enforce permissions on the "leaf" binary
+  become: true
   file:
     dest: "{{ leaf_src_dir }}/bin/leaf"
     owner: "{{ leaf_user_name }}"
@@ -28,6 +31,7 @@
   ignore_errors: true
 
 - name: Ensure a symlink to "leaf" binary
+  become: true
   file:
     src: "{{ leaf_src_dir }}/bin/leaf"
     dest: "{{ leaf_bin }}"

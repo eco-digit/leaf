@@ -25,5 +25,6 @@
   include_tasks: "{{t}}"
   loop:
     - 03-setup-binary.yml
+    - 04-setup-service.yml
   loop_control:
     loop_var: t
