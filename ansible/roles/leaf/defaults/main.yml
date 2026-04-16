@@ -2,6 +2,8 @@
 leaf_bin: "/usr/local/bin/leaf"
 leaf_cmd: "{{ leaf_bin }} --config {{ leaf_config }}"
 leaf_config: "{{ leaf_user_home }}/config.yaml"
+leaf_env_id: "leaf-env-id"
+leaf_env_name: "LEAF Environment"
 leaf_infra_config_path: "{{ leaf_user_home }}/infrastructure.yaml"
 leaf_logfile: "{{ leaf_user_home }}/leaf.log"
 leaf_logrotat_dir: "/etc/logrotate.d"

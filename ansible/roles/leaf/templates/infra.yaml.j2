@@ -1,0 +1,37 @@
+# {{ ansible_managed }}
+---
+version: 1
+environment:
+  id: {{ leaf_env_id }}
+  name: {{ leaf_env_name }}
+
+devices:
+  - id: compute01
+    role: compute
+    profile: compute
+    rack: rack01
+
+  - id: controller01
+    role: controller
+    profile: controller
+    rack: rack01
+
+  - id: storage01
+    role: storage
+    profile: storage
+    rack: rack01
+
+  - id: manager01
+    role: manager
+    profile: manager
+    rack: rack01
+
+  - id: switch01
+    role: network
+    profile: network-switch
+    rack: rack01
+
+  - id: mgmt-switch01
+    role: network
+    profile: management-switch
+    rack: rack01

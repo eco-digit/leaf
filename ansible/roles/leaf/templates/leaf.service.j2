@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+#
+######################################################################
+
+[Unit]
+Description=leaf
+After=network.target syslog.target
+
+[Service]
+AmbientCapabilities=CAP_SYS_RESOURCE CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_SYS_RESOURCE CAP_NET_BIND_SERVICE
+Environment=LANG=en_US.UTF-8
+ExecStart={{ leaf_cmd }}
+Group={{ leaf_user_group }}
+LimitNOFILE=20000
+Restart=always
+RestartSec=360
+StandardError=append:{{leaf_logfile}}
+StandardOutput=append:{{leaf_logfile}}
+Type=simple
+User={{ leaf_user_name }}
+WorkingDirectory={{ leaf_user_home }}
+
+[Install]
+WantedBy=multi-user.target

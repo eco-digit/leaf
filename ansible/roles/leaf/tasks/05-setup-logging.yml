@@ -1,0 +1,10 @@
+- name: Enforce permissions on "{{ leaf_logfile }}"
+  become: true
+  file:
+    path: "{{ leaf_logfile }}"
+    state: touch
+    owner: "{{ leaf_user_name }}"
+    group: "adm"
+    mode: 'u=rw,g=r,o='
+    access_time: preserve
+    modification_time: preserve

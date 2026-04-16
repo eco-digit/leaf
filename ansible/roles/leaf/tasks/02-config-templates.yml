@@ -10,6 +10,20 @@
     dest: "{{ leaf_config }}"
   register: leaf_config_file
 
+- name: Template "infra.yaml"
+  become: true
+  template:
+    src: infra.yaml.j2
+    dest: "{{ leaf_infra_config_path }}"
+  register: leaf_infra_config
+
+- name: Template "profile.yaml"
+  become: true
+  template:
+    src: profile.yaml.j2
+    dest: "{{ leaf_profile_config_path }}"
+  register: leaf_profile_config
+
 #
 # systemd unit
 #

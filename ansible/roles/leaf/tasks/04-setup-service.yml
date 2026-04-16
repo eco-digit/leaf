@@ -1,0 +1,7 @@
+- name: Restart systemd service if anything relevant changed
+  become: true
+  systemd:
+    name: "leaf"
+    enabled: true
+    state: restarted
+  when: systemd_service_leaf.changed or leaf_config_file.changed or leaf_bin_built.changed

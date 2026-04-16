@@ -1,0 +1,15 @@
+#
+# {{ ansible_managed }}
+#
+######################################################################
+
+{{ leaf_logfile }} {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 0660 root {{ leaf_user_group }}
+    su root {{ leaf_user_group }}
+}

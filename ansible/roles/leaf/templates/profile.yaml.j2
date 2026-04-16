@@ -1,0 +1,145 @@
+---
+version: 1
+profiles:
+  compute:
+    kind: server
+    vendor: MiTAC
+    model: E8020-A
+    default_lifespan_years: 4
+    hardware:
+      cpu:
+        cores: 64
+      memory_gb: 512
+      storage:
+        - type: sata_ssd
+          size_gb: 960
+    embodied_impact:
+      gwp:
+        value: "20803.838"
+        unit: kg_co2eq
+      adp:
+        value: "0.691"
+        unit: kg_sb_eq
+      ced:
+        value: "257957.649"
+        unit: mj
+      water:
+        value: "8680.273"
+        unit: m3
+  controller:
+    kind: server
+    vendor: MiTAC
+    model: E7278-A
+    default_lifespan_years: 4
+    hardware:
+      cpu:
+        cores: 20
+      memory_gb: 64
+      storage:
+        - type: sata_ssd
+          size_gb: 960
+    embodied_impact:
+      gwp:
+        value: "20404.894"
+        unit: kg_co2eq
+      adp:
+        value: "0.671"
+        unit: kg_sb_eq
+      ced:
+        value: "252989.786"
+        unit: mj
+      water:
+        value: "8518.934"
+        unit: m3
+  storage:
+    kind: server
+    vendor: MiTAC
+    model: E8020-A
+    default_lifespan_years: 4
+    hardware:
+      cpu:
+        cores: 16
+      memory_gb: 128
+      storage:
+        - type: sata_ssd
+          count: 2
+          size_gb: 480
+        - type: nvme_u2
+          count: 4
+          size_tb: 4
+    embodied_impact:
+      gwp:
+        value: "20657.787"
+        unit: kg_co2eq
+      adp:
+        value: "0.697"
+        unit: kg_sb_eq
+      ced:
+        value: "255773.313"
+        unit: mj
+      water:
+        value: "8582.572"
+        unit: m3
+  manager:
+    kind: server
+    vendor: MiTAC
+    model: E7278-A
+    default_lifespan_years: 4
+    hardware:
+      cpu:
+        cores: 20
+      memory_gb: 64
+      storage:
+        - type: sata_ssd
+          size_gb: 960
+    embodied_impact:
+      gwp:
+        value: "20410.904"
+        unit: kg_co2eq
+      adp:
+        value: "0.671"
+        unit: kg_sb_eq
+      ced:
+        value: "253065.056"
+        unit: mj
+      water:
+        value: "8521.797"
+        unit: m3
+  network-switch:
+    kind: switch
+    vendor: Edgecore
+    model: 7726-32x
+    hardware:
+      switching_capacity: 100g
+    embodied_impact:
+      gwp:
+        value: "840"
+        unit: kg_co2eq
+      adp:
+        value: "0.035"
+        unit: kg_sb_eq
+      ced:
+        value: "10.800"
+        unit: mj
+      water:
+        value: "1.8"
+        unit: m3
+  management-switch:
+    kind: switch
+    vendor: FS
+    model: S3900-48T6S-R
+    hardware:
+      switching_capacity: 1g
+    embodied_impact:
+      gwp:
+        value: "347"
+        unit: kg_co2eq
+      adp:
+        value: "0.011"
+        unit: kg_sb_eq
+      ced:
+        value: "4.200"
+        unit: mj
+      water:
+        value: "0.54"
+        unit: m3
