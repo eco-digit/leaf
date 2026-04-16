@@ -59,15 +59,15 @@ devices:
     role: controller
     profile: controller
     rack: rack01
-  - id: storage01
+  - id: ceph01
     role: storage
     profile: storage
     rack: rack01
-  - id: storage02
+  - id: ceph02
     role: storage
     profile: storage
     rack: rack01
-  - id: storage03
+  - id: ceph03
     role: storage
     profile: storage
     rack: rack01

@@ -183,8 +183,6 @@ func Load(infraPath, profilePath string) (*Infrastructure, error) {
 	}, nil
 }
 
-// --- Internal helpers ---
-
 func loadInfraFile(path string) (*infraFile, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
