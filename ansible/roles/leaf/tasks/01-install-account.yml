@@ -1,0 +1,41 @@
+---
+- name: Ensure "{{leaf_user_name}}" group is present
+  become: true
+  group:
+    name: "{{leaf_user_group}}"
+    state: present
+
+- name: Ensure "{{leaf_user_name}}" user is present
+  become: true
+  user:
+    home: "{{leaf_user_home}}"
+    create_home: true
+    comment: "{{leaf_user_name}}"
+    name: "{{leaf_user_name}}"
+    shell: "/bin/false"
+    groups: "{{leaf_user_name}}"
+    password: "{{lookup('community.general.random_string', base64=true) | password_hash}}"
+    password_lock: true
+    update_password: on_create
+    system: true
+    state: present
+  register: leaf_user_name_created
+
+- name: Enforce permissions on "{{leaf_user_home}}"
+  become: true
+  file:
+    dest: "{{leaf_user_home}}"
+  when: leaf_user_name_created.changed
+
+- name: Ensure ".config" directory exists for the "{{leaf_user_name}}" user
+  become: true
+  file:
+    path: "{{leaf_user_home}}/.config"
+    state: directory
+
+- name: Ensure "{{leaf_user_name}}" user is a member of the docker group
+  become: true
+  user:
+    name: "{{leaf_user_name}}"
+    groups: docker
+    append: true

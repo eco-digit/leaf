@@ -1,0 +1,10 @@
+---
+#
+# config.yaml
+#
+
+- name: Template "config.yaml"
+  become: true
+  template:
+    src: config.yaml.j2
+    dest: "{{ leaf_config }}"

@@ -1,0 +1,32 @@
+---
+- name: Clone "leaf" repository from "{{ leaf_repo }}"
+  git:
+    repo: "{{ leaf_repo }}"
+    dest: "{{ leaf_src_dir }}"
+    version: "{{ leaf_repo_branch | default('main') }}"
+    update: yes
+    force: no
+    depth: 1
+
+- name: Build the "leaf" binary
+  command:
+    chdir: "{{ leaf_src_dir }}"
+    cmd: "make"
+    creates: "{{ leaf_src_dir }}/bin/leaf"
+  environment:
+    CGO_ENABLED: 0
+    GO111MODULE: "on"
+  register: leaf_bin_built
+
+- name: Enforce permissions on the "leaf" binary
+  file:
+    dest: "{{ leaf_src_dir }}/bin/leaf"
+    owner: "{{ leaf_user }}"
+    group: "{{ leaf_group }}"
+    mode: 'u=rx,g=rx,o='
+
+- name: Ensure a symlink to "leaf" binary
+  file:
+    src: "{{ leaf_src_dir }}/bin/leaf"
+    dest: "{{ leaf_bin }}"
+    state: link
