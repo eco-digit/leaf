@@ -7,6 +7,7 @@
     update: yes
     force: no
     depth: 1
+  ignore_errors: true
 
 - name: Build the "leaf" binary
   command:
@@ -21,12 +22,14 @@
 - name: Enforce permissions on the "leaf" binary
   file:
     dest: "{{ leaf_src_dir }}/bin/leaf"
-    owner: "{{ leaf_user }}"
-    group: "{{ leaf_group }}"
+    owner: "{{ leaf_user_name }}"
+    group: "{{ leaf_user_group }}"
     mode: 'u=rx,g=rx,o='
+  ignore_errors: true
 
 - name: Ensure a symlink to "leaf" binary
   file:
     src: "{{ leaf_src_dir }}/bin/leaf"
     dest: "{{ leaf_bin }}"
     state: link
+  ignore_errors: true

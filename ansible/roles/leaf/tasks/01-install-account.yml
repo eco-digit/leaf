@@ -27,12 +27,6 @@
     dest: "{{leaf_user_home}}"
   when: leaf_user_name_created.changed
 
-- name: Ensure ".config" directory exists for the "{{leaf_user_name}}" user
-  become: true
-  file:
-    path: "{{leaf_user_home}}/.config"
-    state: directory
-
 - name: Ensure "{{leaf_user_name}}" user is a member of the docker group
   become: true
   user:
