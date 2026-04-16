@@ -87,3 +87,27 @@ func TestProvider_TTLCaching(t *testing.T) {
 		t.Errorf("expected 1 API call, got %d", callCount.Load())
 	}
 }
+
+// Electricity tests
+func TestElectricityMapsClient_Success(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("auth-token") != "mykey" {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		if r.URL.Query().Get("zone") != "DE" {
+			http.Error(w, "bad zone", http.StatusBadRequest)
+			return
+		}
+		json.NewEncoder(w).Encode(electricityMapsResponse{Zone: "DE", CarbonIntensity: 350.5})
+	}))
+	defer srv.Close()
+
+	v, err := NewElectricityMapsClient("mykey", srv.URL).FetchGWP("DE")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if v != 350.5 {
+		t.Errorf("got %g, want 350.5", v)
+	}
+}
