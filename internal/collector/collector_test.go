@@ -127,6 +127,29 @@ func TestCollect_KeplerActive(t *testing.T) {
 	}
 }
 
+func TestCollect_BMC_RedfishURL(t *testing.T) {
+	infra := &infrastructure.Infrastructure{
+		Environment:   infrastructure.Environment{ID: "dc1"},
+		Devices:       []infrastructure.ResolvedDevice{{ID: "compute01", Role: "compute", Component: "compute"}},
+		MetricSources: map[string]infrastructure.MetricSourceDef{"bmc": bmcSrc},
+	}
+	rendered := `avg_over_time(reading_watts[1h])`
+
+	q := &mockQuerier{responses: map[string]prommodel.Value{
+		rendered: vec(smpl(prommodel.LabelSet{
+			"instance": "https://compute01.bmc.scs1.ber3.int.yco.de/redfish/v1/Chassis/Self/Power",
+		}, 250.5)),
+	}}
+
+	raw, err := collector.Collect(q, infra, testWindow, time.Now())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if raw.Devices["compute01"].Metrics["bmc"] != 250.5 {
+		t.Errorf("BMC watts = %.2f, want 250.5", raw.Devices["compute01"].Metrics["bmc"])
+	}
+}
+
 func TestCollect_KeplerVM(t *testing.T) {
 	rendered := `increase(kepler_vm_cpu_joules_total{zone="package"}[1h])`
 
