@@ -15,9 +15,11 @@ Before proceeding any further, ensure you have the necessary softwares to use th
 
 ### Local Deployment for testing while working on the codebase
 
-Connect to prometheus via port forwarding:
+Connect to prometheus via port forwarding, start `leaf` and check the metrics.
 
-1. Start a SSH tunnel in a separated terminal/session/shell to forward traffic from localhost to a running prometheus server:
+> Run the commands on separe sessions/terminals/shells
+
+1. Start a SSH tunnel to forward traffic from localhost to a running prometheus server:
 
   * `ssh -L 9091:127.0.0.1:9091 user@server`
 
@@ -25,7 +27,7 @@ Connect to prometheus via port forwarding:
 
   * `go run ./cmd/leaf --config config/config.yaml.sample`
 
-3. Open http://localhost:9010/metrics in your web browser to check for embodied impact metrics.
+3. Open http://127.0.0.1:9010/metrics in your web browser to check for embodied impact metrics.
 
 ### Building the binary
 
