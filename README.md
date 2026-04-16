@@ -25,33 +25,6 @@ Connect to prometheus via port forwarding:
 
 3. Check /metrics at http://localhost:9010/metrics for embodied impact metrics
 
-```
-.
-├── bin
-├── cmd
-│   └── leaf
-│       └── main.go
-├── docker
-│   ├── Dockerfile
-│   └── Dockerfile_test
-├── entrypoint.sh
-├── go.mod
-├── go.sum
-├── internal
-│   ├── config
-│   │   ├── config.go
-│   │   └── config.yaml
-│   ├── exporter
-│   │   └── exporter.go
-│   ├── model
-│   │   └── leaf-model.yaml
-│   └── promclient
-│       └── client.go
-├── LICENSE
-├── Makefile
-└── README.md
-```
-
 ### Building the binary
 
 ```sh
