@@ -1,9 +1,9 @@
 ---
 server:
-  addr: ":9010"
+  addr: "%%SERVER_ADDRESS%%:%%SERVER_PORT%%"
 infrastructure:
-  infra_path: "/etc/leaf/infrastructure.yaml"
-  profile_path: "/etc/leaf/profile.yaml"
+  infra_path: "%%INFRA_CONFIG_PATH%%"
+  profile_path: "%%POFILE_CONFIG_PATH%%"
 prometheus:
   url: "%%PROMETHEUS%%"
   username: "%%PROMETHEUS_USER%%"
