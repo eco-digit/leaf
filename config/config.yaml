@@ -16,3 +16,6 @@ intensity:
     api_key: "5RZm8RaFVKMBfpEVpWeY"
     zone: "DE"
     base_url: "https://api.electricitymap.org"
+  mix_data:
+    path: "docs/electricity_mixes.csv"
+    country: "DEU"
