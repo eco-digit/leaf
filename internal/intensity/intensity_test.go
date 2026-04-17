@@ -60,6 +60,32 @@ func liveCfg(zone, country string) Config {
 	return Config{TTL: time.Hour, Zone: zone, Country: country}
 }
 
+func goodMix() *mockMix {
+	return &mockMix{gwp: 0.34414, adp: 0.00000008787, ced: 8.7477, wue: 1.947}
+}
+
+func TestProvider_GWPFallsBackToCSV(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "down", http.StatusServiceUnavailable)
+	}))
+	defer srv.Close()
+
+	p := NewProvider(liveCfg("DE", "DEU"), NewElectricityMapsClient("key", srv.URL), goodMix())
+
+	factors, err := p.Fetch()
+	// Error expected because Electricity Maps failed, but GWP should be resolved from CSV.
+	if err != nil {
+		t.Fatalf("unexpected error (CSV fallback should work): %v", err)
+	}
+	wantGWP := 0.34414 * 1000 // converted to g CO2eq/kWh
+	if factors.GWP.Value != wantGWP {
+		t.Errorf("GWP: got %g, want %g", factors.GWP.Value, wantGWP)
+	}
+	if factors.GWP.Source != SourceMixData {
+		t.Errorf("GWP source: got %q, want %q", factors.GWP.Source, SourceMixData)
+	}
+}
+
 func TestElectricityMapsClient_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("auth-token") != "mykey" {
