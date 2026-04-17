@@ -18,3 +18,8 @@ func NewBoaviztaClient(baseURL string) *BoaviztaClient {
 		http:    &http.Client{Timeout: 10 * time.Second},
 	}
 }
+
+type boaviztaCountryResponse struct {
+	ADPFactor float64 `json:"adp_factor_kgSbeq_per_kWh"` // ADPFactor - abiotic depletion potential per kWh of electricity.
+	PEFactor  float64 `json:"pe_factor_MJ_per_kWh"`      // PEFactor - primary energy / cumulative energy demand per kWh.
+}
