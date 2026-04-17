@@ -13,45 +13,23 @@ Before proceeding any further, ensure you have the necessary softwares to use th
 
 > NOTE: `leaf` requires that prometheus is available and running, otherwise it will be terminated and constantly restarted until it connects to the service. Create a port forwarding (perhaps using a `ssh` tunnel), as mentioned above, or change the configuration file to access an instance of prometheus before starting `leaf`.
 
-Here'a a `tree` of files present so far:
+### Local Deployment for testing while working on the codebase
 
-## Local Deployment for testing while working on the codebase
-Connect to prometheus via port forwarding:
-1. Start port forwarding from local host to a running prometheus server:
-`ssh -i ~/.ssh/id_ed25519 -L 9091::9091 user@server`
+Connect to prometheus via port forwarding, start `leaf` and check the metrics.
+
+> Run the commands on separe sessions/terminals/shells
+
+1. Start a SSH tunnel to forward traffic from localhost to a running prometheus server:
+
+  * `ssh -L 9091:127.0.0.1:9091 user@server`
 
 2. Start leaf, setting the config path flag:
-`go run ./cmd/leaf --config config/config.yaml.sample`
 
-3. Check /metrics at http://localhost:9010/metrics for embodied impact metrics
+  * `go run ./cmd/leaf --config config/config.yaml.sample`
+
+3. Open http://127.0.0.1:9010/metrics in your web browser to check for embodied impact metrics.
 
 4. Test Collector: `go run ./cmd/leaf -config config/config.yaml.sample -collect-once`
-```
-.
-├── bin
-├── cmd
-│   └── leaf
-│       └── main.go
-├── docker
-│   ├── Dockerfile
-│   └── Dockerfile_test
-├── entrypoint.sh
-├── go.mod
-├── go.sum
-├── internal
-│   ├── config
-│   │   ├── config.go
-│   │   └── config.yaml
-│   ├── exporter
-│   │   └── exporter.go
-│   ├── model
-│   │   └── leaf-model.yaml
-│   └── promclient
-│       └── client.go
-├── LICENSE
-├── Makefile
-└── README.md
-```
 
 ### Building the binary
 

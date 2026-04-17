@@ -1,0 +1,5 @@
+---
+leaf_dependencies:
+  - git
+  - golang
+  - make

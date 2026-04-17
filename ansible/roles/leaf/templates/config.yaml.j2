@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+---
+server:
+  addr: "{{ leaf_server_address }}:{{ leaf_server_port }}"
+infrastructure:
+  infra_path: "{{ leaf_infra_config_path }}"
+  profile_path: "{{ leaf_profile_config_path }}"
+prometheus:
+  url: "{{ leaf_prometheus_url }}"
+  username: "{{ leaf_prometheus_user }}"
+  password: "{{ leaf_prometheus_pass }}"

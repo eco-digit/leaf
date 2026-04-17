@@ -1,0 +1,27 @@
+---
+- name: Enable and Start leaf
+  become: true
+  systemd:
+    name: "{{ leaf_service }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  listen: Enable leaf
+
+- name: Restart leaf
+  become: true
+  systemd:
+    name: "{{ leaf_service }}"
+    enabled: true
+    state: restarted
+    daemon_reload: true
+  listen: Restart leaf
+######################################################################
+
+- name: Restart Logrotate
+  become: true
+  systemd:
+    name: logrotate.service
+    enabled: true
+    state: restarted
+  listen: Restart Logrotate

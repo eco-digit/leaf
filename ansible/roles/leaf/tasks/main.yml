@@ -1,0 +1,30 @@
+---
+- name: Include distribution-specific variables for Ubuntu
+  include_vars:
+    dir: vars
+    files_matching: "ubuntu*"
+    extensions: [ yml ]
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Include "install" tasks
+  include_tasks: "{{t}}"
+  loop:
+    - 00-install-dependencies.yml
+    - 01-install-account.yml
+  loop_control:
+    loop_var: t
+
+- name: Include "config" tasks
+  include_tasks: "{{t}}"
+  loop:
+    - 02-config-templates.yml
+  loop_control:
+    loop_var: t
+
+- name: Include "setup" tasks
+  include_tasks: "{{t}}"
+  loop:
+    - 03-setup-binary.yml
+    - 04-setup-service.yml
+  loop_control:
+    loop_var: t

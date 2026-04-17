@@ -1,0 +1,60 @@
+---
+#
+# configuration files
+#
+
+- name: Template "config.yaml"
+  become: true
+  template:
+    src: config.yaml.j2
+    dest: "{{ leaf_config }}"
+  register: leaf_config_file
+
+- name: Template "infra.yaml"
+  become: true
+  template:
+    src: infra.yaml.j2
+    dest: "{{ leaf_infra_config_path }}"
+  register: leaf_infra_config
+
+- name: Template "profile.yaml"
+  become: true
+  template:
+    src: profile.yaml.j2
+    dest: "{{ leaf_profile_config_path }}"
+  register: leaf_profile_config
+
+#
+# systemd unit
+#
+
+- name: Template "leaf.service"
+  become: true
+  template:
+    src: leaf.service.j2
+    dest: "{{ leaf_systemd_unit }}"
+    owner: root
+    group: root
+    mode: 'u=rw,g=r,o=r'
+    validate: "grep -E 'ExecStart.*leaf.*conf' %s"
+  register: systemd_service_leaf
+  notify:
+    - Enable leaf
+    - Restart leaf
+
+#
+# logrotate
+#
+
+- name: Template "logrotate"
+  become: true
+  template:
+    src: leaf.logrotate.j2
+    dest: "{{ leaf_logrotate }}"
+    owner: root
+    group: root
+    mode: 'u=rw,g=r,o=r'
+    validate: "grep {{ leaf_logfile }} %s"
+  register: leaf_logrotate
+  notify:
+    - Restart Logrotate
