@@ -17,7 +17,7 @@ Before proceeding any further, ensure you have the necessary softwares to use th
 
 Connect to prometheus via port forwarding, start `leaf` and check the metrics.
 
-> Run the commands on separe sessions/terminals/shells
+> Run the commands on separate sessions/terminals/shells
 
 1. Start a SSH tunnel to forward traffic from localhost to a running prometheus server:
 
@@ -29,7 +29,7 @@ Connect to prometheus via port forwarding, start `leaf` and check the metrics.
 
 3. Open http://127.0.0.1:9010/metrics in your web browser to check for embodied impact metrics.
 
-4. Test Collector: `go run ./cmd/leaf -config config/config.yaml.sample -collect-once`
+4. Test the Collector, forcing to query for metrics: `go run ./cmd/leaf -config config/config.yaml.sample -collect-once`
 
 ### Building the binary
 
