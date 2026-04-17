@@ -1,4 +1,4 @@
-// Package intensity fetches operational intensity factors (GWP, ADP, CED) from
+// Package intensity fetches operational intensity factors (GWP, ADP, CED, WUE) from
 // external APIs and caches them.
 package intensity
 
@@ -13,8 +13,7 @@ type Source string
 
 const (
 	SourceElectricityMaps Source = "electricity_maps"
-	SourceBoavizta        Source = "boavizta"
-	SourceStatic          Source = "static"
+	SourceMixData         Source = "mix_data"
 )
 
 type FactorValue struct {
@@ -28,46 +27,41 @@ type IntensityFactors struct {
 	GWP FactorValue
 	ADP FactorValue
 	CED FactorValue
+	WUE FactorValue
 }
 
 // Config holds the runtime settings for the Provider, populated from config.yaml.
-// Static fallback fields are optional — zero means no static fallback for that factor.
 type Config struct {
 	TTL     time.Duration
 	Zone    string
 	Country string
-	// Optional static fallback values used when the API is unavailable and no cached value exists.
-	GWPStatic float64
-	ADPStatic float64
-	CEDStatic float64
 }
 
-// GWPFetcher, Electricity maps factor
 type GWPFetcher interface {
 	FetchGWP(zone string) (float64, error)
 }
 
-// BoaviztaFetcher, Boavizta API for now
-type BoaviztaFetcher interface {
+type StaticFetcher interface {
+	FetchGWP(countryCode string) (float64, error)
 	FetchADP(countryCode string) (float64, error)
 	FetchCED(countryCode string) (float64, error)
+	FetchWUE(countryCode string) (float64, error)
 }
 
 // Provider gets intensity factors and caches them for the configured TTL.
+// When a live fetch fails it falls back to the last known cached value.
 type Provider struct {
-	cfg      Config
-	gwp      GWPFetcher
-	boavizta BoaviztaFetcher
-
+	cfg       Config
+	gwp       GWPFetcher
+	mix       StaticFetcher
 	mu        sync.RWMutex
 	cached    *IntensityFactors
 	fetchedAt time.Time
 }
 
-// NewProvider wires up a Provider. Pass nil for gwp or boavizta
-// - fall back to cached or static values.
-func NewProvider(cfg Config, gwp GWPFetcher, boavizta BoaviztaFetcher) *Provider {
-	return &Provider{cfg: cfg, gwp: gwp, boavizta: boavizta}
+// NewProvider wires up a Provider.
+func NewProvider(cfg Config, gwp GWPFetcher, mix StaticFetcher) *Provider {
+	return &Provider{cfg: cfg, gwp: gwp, mix: mix}
 }
 
 // Fetch returns the current intensity factors.
@@ -112,6 +106,12 @@ func (p *Provider) refresh() (IntensityFactors, error) {
 	}
 	factors.CED = cedVal
 
+	wueVal, err := p.resolveWUE()
+	if err != nil {
+		errs = append(errs, err)
+	}
+	factors.WUE = wueVal
+
 	// Cache even on partial failure so the TTL window still applies.
 	p.cached = &factors
 	p.fetchedAt = time.Now()
@@ -128,59 +128,54 @@ func (p *Provider) resolveGWP() (FactorValue, error) {
 		if err == nil {
 			return FactorValue{Value: v, Unit: "g_co2eq_per_kwh", Source: SourceElectricityMaps}, nil
 		}
-		log.Printf("intensity: GWP fetch failed (%v) — using fallback", err)
-		fv, fbErr := p.fallback(func(f IntensityFactors) FactorValue { return f.GWP }, p.cfg.GWPStatic, "g_co2eq_per_kwh")
-		if fbErr != nil {
-			return fv, fmt.Errorf("gwp: fetch: %w; fallback: %v", err, fbErr)
-		}
-		return fv, fmt.Errorf("gwp: %w", err)
+		log.Printf("intensity: GWP live fetch failed (%v) — falling back to CSV", err)
 	}
-	return p.fallback(func(f IntensityFactors) FactorValue { return f.GWP }, p.cfg.GWPStatic, "g_co2eq_per_kwh")
+	// Fall back to the CSV value, which is a static but reasonable approximation.
+	if p.mix != nil {
+		v, err := p.mix.FetchGWP(p.cfg.Country)
+		if err == nil {
+			return FactorValue{Value: v * 1000, Unit: "g_co2eq_per_kwh", Source: SourceMixData}, nil
+		}
+	}
+	return p.cachedOrError(func(f IntensityFactors) FactorValue { return f.GWP }, "gwp")
 }
 
 func (p *Provider) resolveADP() (FactorValue, error) {
-	if p.boavizta != nil {
-		v, err := p.boavizta.FetchADP(p.cfg.Country)
+	if p.mix != nil {
+		v, err := p.mix.FetchADP(p.cfg.Country)
 		if err == nil {
-			return FactorValue{Value: v, Unit: "kg_sb_eq_per_kwh", Source: SourceBoavizta}, nil
+			return FactorValue{Value: v, Unit: "kg_sb_eq_per_kwh", Source: SourceMixData}, nil
 		}
-		log.Printf("intensity: ADP fetch failed (%v) — using fallback", err)
-		fv, fbErr := p.fallback(func(f IntensityFactors) FactorValue { return f.ADP }, p.cfg.ADPStatic, "kg_sb_eq_per_kwh")
-		if fbErr != nil {
-			return fv, fmt.Errorf("adp: fetch: %w; fallback: %v", err, fbErr)
-		}
-		return fv, fmt.Errorf("adp: %w", err)
 	}
-	return p.fallback(func(f IntensityFactors) FactorValue { return f.ADP }, p.cfg.ADPStatic, "kg_sb_eq_per_kwh")
+	return p.cachedOrError(func(f IntensityFactors) FactorValue { return f.ADP }, "adp")
 }
 
 func (p *Provider) resolveCED() (FactorValue, error) {
-	if p.boavizta != nil {
-		v, err := p.boavizta.FetchCED(p.cfg.Country)
+	if p.mix != nil {
+		v, err := p.mix.FetchCED(p.cfg.Country)
 		if err == nil {
-			return FactorValue{Value: v, Unit: "mj_per_kwh", Source: SourceBoavizta}, nil
+			return FactorValue{Value: v, Unit: "mj_per_kwh", Source: SourceMixData}, nil
 		}
-		log.Printf("intensity: CED fetch failed (%v) — using fallback", err)
-		fv, fbErr := p.fallback(func(f IntensityFactors) FactorValue { return f.CED }, p.cfg.CEDStatic, "mj_per_kwh")
-		if fbErr != nil {
-			return fv, fmt.Errorf("ced: fetch: %w; fallback: %v", err, fbErr)
-		}
-		return fv, fmt.Errorf("ced: %w", err)
 	}
-	return p.fallback(func(f IntensityFactors) FactorValue { return f.CED }, p.cfg.CEDStatic, "mj_per_kwh")
+	return p.cachedOrError(func(f IntensityFactors) FactorValue { return f.CED }, "ced")
 }
 
-// fallback tries the last cached value first, then the configured static value.
-// Returns error if we have nothing to fall back to.
-func (p *Provider) fallback(get func(IntensityFactors) FactorValue, staticVal float64, unit string) (FactorValue, error) {
+func (p *Provider) resolveWUE() (FactorValue, error) {
+	if p.mix != nil {
+		v, err := p.mix.FetchWUE(p.cfg.Country)
+		if err == nil {
+			return FactorValue{Value: v, Unit: "liters_per_kwh", Source: SourceMixData}, nil
+		}
+	}
+	return p.cachedOrError(func(f IntensityFactors) FactorValue { return f.WUE }, "wue")
+}
+
+// cachedOrError returns the last cached value if one exists, otherwise an error.
+func (p *Provider) cachedOrError(get func(IntensityFactors) FactorValue, name string) (FactorValue, error) {
 	if p.cached != nil {
-		fv := get(*p.cached)
-		if fv.Value != 0 {
+		if fv := get(*p.cached); fv.Value != 0 {
 			return fv, nil
 		}
 	}
-	if staticVal != 0 {
-		return FactorValue{Value: staticVal, Unit: unit, Source: SourceStatic}, nil
-	}
-	return FactorValue{}, fmt.Errorf("no cached or static value available")
+	return FactorValue{}, fmt.Errorf("%s: no data available", name)
 }
