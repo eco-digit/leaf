@@ -13,7 +13,7 @@ type Source string
 
 const (
 	SourceElectricityMaps Source = "electricity_maps"
-	SourceMixData         Source = "mix_data"
+	SourceMixData         Source = "static_factors"
 )
 
 type FactorValue struct {
