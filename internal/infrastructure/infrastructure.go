@@ -10,10 +10,20 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// MetricSourceDef defines a single Prometheus query source.
+type MetricSourceDef struct {
+	Query         string `yaml:"query"`
+	MatchLabel    string `yaml:"match_label"`
+	MatchStrategy string `yaml:"match_strategy"`
+	VMLabel       string `yaml:"vm_label"`
+	Unit          string `yaml:"unit"`
+}
+
 type infraFile struct {
-	Version     int         `yaml:"version"`
-	Environment Environment `yaml:"environment"`
-	Devices     []device    `yaml:"devices"`
+	Version       int                        `yaml:"version"`
+	Environment   Environment                `yaml:"environment"`
+	Devices       []device                   `yaml:"devices"`
+	MetricSources map[string]MetricSourceDef `yaml:"metric_sources"`
 }
 
 // Environment describes the logical data-center environment.
@@ -67,8 +77,6 @@ type StorageDisk struct {
 }
 
 // ImpactValue holds a numeric impact value and its unit as defined in profile.yaml.
-// The value is stored as a string to safely handle varied decimal notations from
-// LCA source data. Use ParseDecimal to obtain a float64.
 type ImpactValue struct {
 	Value string `yaml:"value"`
 	Unit  string `yaml:"unit"`
@@ -125,8 +133,9 @@ type ResolvedDevice struct {
 
 // Infrastructure is the fully resolved representation of infrastructure.yaml and profile.yaml.
 type Infrastructure struct {
-	Environment Environment
-	Devices     []ResolvedDevice
+	Environment   Environment
+	Devices       []ResolvedDevice
+	MetricSources map[string]MetricSourceDef
 }
 
 // RoleToComponent maps a device role string to one of Leaf's four component ategories. Unknown roles return unknown.
@@ -168,12 +177,11 @@ func Load(infraPath, profilePath string) (*Infrastructure, error) {
 	}
 
 	return &Infrastructure{
-		Environment: infra.Environment,
-		Devices:     resolved,
+		Environment:   infra.Environment,
+		Devices:       resolved,
+		MetricSources: infra.MetricSources,
 	}, nil
 }
-
-// --- Internal helpers ---
 
 func loadInfraFile(path string) (*infraFile, error) {
 	data, err := os.ReadFile(path)

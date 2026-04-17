@@ -27,7 +27,7 @@ func New(c *cache.Cache, addr string) *Server {
 	return &Server{cache: c, addr: addr}
 }
 
-// Handler returns http.Hanlder registered with /metrics.
+// Handler returns http.Handler registered with /metrics and /health.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/metrics", s.metricsHandler)
