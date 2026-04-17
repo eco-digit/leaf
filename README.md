@@ -29,6 +29,8 @@ Connect to prometheus via port forwarding, start `leaf` and check the metrics.
 
 3. Open http://127.0.0.1:9010/metrics in your web browser to check for embodied impact metrics.
 
+4. Test Collector: `go run ./cmd/leaf -config config/config.yaml.sample -collect-once`
+
 ### Building the binary
 
 ```sh

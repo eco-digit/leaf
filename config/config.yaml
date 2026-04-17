@@ -8,3 +8,14 @@ prometheus:
   url: "%%PROMETHEUS%%"
   username: "%%PROMETHEUS_USER%%"
   password: "%%PROMETHEUS_PASS%%"
+orchestrator:
+  reporting_interval: "1h"
+intensity:
+  ttl: "1h"
+  electricity_maps:
+    api_key: "5RZm8RaFVKMBfpEVpWeY"
+    zone: "DE"
+    base_url: "https://api.electricitymap.org"
+  static_factors:
+    path: "docs/electricity_mixes.csv"
+    country: "DEU"
