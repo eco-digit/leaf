@@ -17,7 +17,7 @@ type MixFactors struct {
 }
 
 // MixReader loads electricity mix factors from the CSV.
-// Satisfies MixFetcher: swap this for an API client when the data
+// Satisfies StaticFetcher: swap this for an API client when the data
 // moves to an external data source/ endpoint.
 type MixReader struct {
 	data map[string]MixFactors
