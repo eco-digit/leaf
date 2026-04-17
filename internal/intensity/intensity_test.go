@@ -86,6 +86,22 @@ func TestProvider_GWPFallsBackToCSV(t *testing.T) {
 	}
 }
 
+func failMix() *mockMix {
+	return &mockMix{err: fmt.Errorf("mix unavailable")}
+}
+
+func TestProvider_ErrorWhenNoDataAvailable(t *testing.T) {
+	p := NewProvider(liveCfg("DE", "DEU"), nil, failMix())
+
+	factors, err := p.Fetch()
+	if err == nil {
+		t.Fatal("expected error with no data source")
+	}
+	if factors.ADP.Value != 0 {
+		t.Errorf("expected zero ADP, got %g", factors.ADP.Value)
+	}
+}
+
 func TestElectricityMapsClient_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("auth-token") != "mykey" {
