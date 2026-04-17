@@ -34,13 +34,13 @@ type Config struct {
 		ElectricityMaps struct {
 			APIKey  string `yaml:"api_key"`
 			Zone    string `yaml:"zone"`
-			BaseURL string `yaml:"base_url"`
+			BaseURL string `yaml:"base_url"` // defaults to https://api.electricitymap.org
 		} `yaml:"electricity_maps"`
 
-		Boavizta struct {
+		MixData struct {
+			Path    string `yaml:"path"` // path to electricity_mixes.csv
 			Country string `yaml:"country"`
-			BaseURL string `yaml:"base_url"`
-		} `yaml:"boavizta"`
+		} `yaml:"mix_data"`
 	} `yaml:"intensity"`
 }
 
@@ -65,8 +65,8 @@ func LoadConfig(path string) (*Config, error) {
 	if cfg.Intensity.ElectricityMaps.BaseURL == "" {
 		cfg.Intensity.ElectricityMaps.BaseURL = "https://api.electricitymap.org"
 	}
-	if cfg.Intensity.Boavizta.BaseURL == "" {
-		cfg.Intensity.Boavizta.BaseURL = "https://api.boavizta.org"
+	if cfg.Intensity.MixData.Path == "" {
+		cfg.Intensity.MixData.Path = "docs/electricity_mixes.csv"
 	}
 	return &cfg, nil
 }

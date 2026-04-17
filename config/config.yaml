@@ -16,6 +16,3 @@ intensity:
     api_key: "5RZm8RaFVKMBfpEVpWeY"
     zone: "DE"
     base_url: "https://api.electricitymap.org"
-  boavizta:
-    country: "DE"
-    base_url: ""   # leave empty for https://api.boavizta.org
