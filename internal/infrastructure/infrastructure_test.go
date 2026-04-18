@@ -302,6 +302,45 @@ func TestComponentAssignment(t *testing.T) {
 	}
 }
 
+func TestLoad_PUEDefault(t *testing.T) {
+	dir := t.TempDir()
+	infraPath := writeFile(t, dir, "infrastructure.yaml", infraYAML) // no pue field exists
+	profilePath := writeFile(t, dir, "profile.yaml", profileYAML)
+
+	infra, err := Load(infraPath, profilePath)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if infra.Environment.PUE != 1.0 {
+		t.Errorf("PUE = %v, want 1.0 (default)", infra.Environment.PUE)
+	}
+}
+
+func TestLoad_PUEExplicit(t *testing.T) {
+	dir := t.TempDir()
+	infraPath := writeFile(t, dir, "infrastructure.yaml", `
+version: 1
+environment:
+  id: test-env
+  name: Test
+  pue: 1.4
+devices:
+  - id: compute01
+    role: compute
+    profile: compute-standard
+    rack: rack01
+`)
+	profilePath := writeFile(t, dir, "profile.yaml", profileYAML)
+
+	infra, err := Load(infraPath, profilePath)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if infra.Environment.PUE != 1.4 {
+		t.Errorf("PUE = %v, want 1.4", infra.Environment.PUE)
+	}
+}
+
 func TestParseDecimal(t *testing.T) {
 	cases := []struct {
 		input   string

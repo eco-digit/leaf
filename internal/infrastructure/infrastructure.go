@@ -28,8 +28,9 @@ type infraFile struct {
 
 // Environment describes the logical data-center environment.
 type Environment struct {
-	ID   string `yaml:"id"`
-	Name string `yaml:"name"`
+	ID   string  `yaml:"id"`
+	Name string  `yaml:"name"`
+	PUE  float64 `yaml:"pue"`
 }
 
 // device is the raw YAML representation of a device entry.
@@ -164,6 +165,14 @@ func Load(infraPath, profilePath string) (*Infrastructure, error) {
 	infra, err := loadInfraFile(infraPath)
 	if err != nil {
 		return nil, fmt.Errorf("infrastructure: %w", err)
+	}
+
+	if infra.Environment.PUE == 0 {
+		// PUE default set to 1.2
+		infra.Environment.PUE = 1.2
+	}
+	if infra.Environment.PUE < 1.0 {
+		return nil, fmt.Errorf("infrastructure: environment.pue must be >= 1.0, got %.4f", infra.Environment.PUE)
 	}
 
 	profiles, err := loadProfileFile(profilePath)

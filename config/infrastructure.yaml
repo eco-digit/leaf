@@ -30,6 +30,7 @@ metric_sources:
 environment:
   id: ocp-scs
   name: ScaleUp-OCP
+  pue: 1.2
 devices:
   - id: compute01
     role: compute
