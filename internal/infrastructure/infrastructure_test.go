@@ -311,8 +311,8 @@ func TestLoad_PUEDefault(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if infra.Environment.PUE != 1.0 {
-		t.Errorf("PUE = %v, want 1.0 (default)", infra.Environment.PUE)
+	if infra.Environment.PUE != 1.2 {
+		t.Errorf("PUE = %v, want 1.2 (default)", infra.Environment.PUE)
 	}
 }
 
