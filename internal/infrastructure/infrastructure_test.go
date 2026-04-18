@@ -341,6 +341,31 @@ devices:
 	}
 }
 
+func TestLoad_PUEInvalid(t *testing.T) {
+	dir := t.TempDir()
+	infraPath := writeFile(t, dir, "infrastructure.yaml", `
+version: 1
+environment:
+  id: test-env-2
+  name: test2
+  pue: 0.83
+devices:
+  - id: compute01
+    role: compute
+    profile: compute-standard
+    rack: rack01
+`)
+	profilePath := writeFile(t, dir, "profile.yaml", profileYAML)
+
+	_, err := Load(infraPath, profilePath)
+	if err == nil {
+		t.Fatal("expected error for PUE < 1.0, got nil")
+	}
+	if !contains(err.Error(), "pue") {
+		t.Errorf("error should mention pue, got: %v", err)
+	}
+}
+
 func TestParseDecimal(t *testing.T) {
 	cases := []struct {
 		input   string
