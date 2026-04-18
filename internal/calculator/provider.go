@@ -7,20 +7,26 @@ import (
 	"github.com/OSBA-eco-digit/leaf/internal/collector"
 	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
 	"github.com/OSBA-eco-digit/leaf/internal/model"
-	"github.com/OSBA-eco-digit/leaf/research/assets"
 )
 
 // TODO orchestrator.reporting_interval: "1h"
+const windowHours = 1
 
-// deviceEnergyKWh returns the energie in kWh for a single device
-// over the reporting.interval.
-func deviceEnergyKWh(d *collector.DeviceRaw) (kwg float64, keplerFallback bool) {
+// deviceEnergyKWh returns the energie in kWh for a single device over the
+// reporting.interval.
+func deviceEnergyKWh(d *collector.DeviceRaw) (kwh float64, keplerFallback bool) {
 	if bmc, ok := d.Metrics["bmc"]; ok && bmc > 0 {
-		return bmc * assets.windowHours / 1000.0, false
+		return bmc * windowHours / 1000.0, false
 	}
 
-	// TODO kepler fallback
-	return kwg, false
+	// kepler fallback
+	idle := d.Metrics["kepler_node_idle"]
+	active := d.Metrics["kepler_node_active"]
+	if idle > 0 || active > 0 {
+		return (idle + active) / 3600.0 / 1000.0, true
+	}
+
+	return kwh, false
 }
 
 // deviceEnergyResults creates a energy ImpatResult per device.
