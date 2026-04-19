@@ -38,5 +38,37 @@ func deviceEnergyResults(
 	var rs model.ResultSet
 	var warnings []string
 
+	datacenter := infra.Environment.ID
+	provider := infra.Environment.ID
+
+	for _, dev := range infra.Devices {
+		d, ok := raw.Devices[dev.ID]
+		if !ok {
+			continue
+		}
+
+		kwh, fallback := deviceEnergyKWh(d)
+		if kwh == 0 {
+			continue
+		}
+
+		if fallback {
+			warnings = append(warnings, dev.ID+": BMC missing, used Kepler idle+active as energy fallback source")
+		}
+		rs = append(rs, model.ImpactResult{
+			Subject:     model.SubjectDevice,
+			Provider:    provider,
+			Datacenter:  datacenter,
+			Component:   dev.Component,
+			Device:      dev.ID,
+			ImpactPhase: model.PhaseOperational,
+			Category:    model.CategoryEnergy,
+			Value:       kwh,
+			Unit:        "kwh",
+			Timestamp:   ts,
+			PeriodHours: 1,
+		})
+	}
+
 	return rs, warnings
 }
