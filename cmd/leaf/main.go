@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/cache"
-	"github.com/OSBA-eco-digit/leaf/internal/collector"
-	"github.com/OSBA-eco-digit/leaf/internal/config"
-	"github.com/OSBA-eco-digit/leaf/internal/embodied"
-	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
-	"github.com/OSBA-eco-digit/leaf/internal/promclient"
-	"github.com/OSBA-eco-digit/leaf/internal/server"
+	"github.com/eco-digit/leaf/internal/cache"
+	"github.com/eco-digit/leaf/internal/collector"
+	"github.com/eco-digit/leaf/internal/config"
+	"github.com/eco-digit/leaf/internal/embodied"
+	"github.com/eco-digit/leaf/internal/infrastructure"
+	"github.com/eco-digit/leaf/internal/promclient"
+	"github.com/eco-digit/leaf/internal/server"
 )
 
 func main() {

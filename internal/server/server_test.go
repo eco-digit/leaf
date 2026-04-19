@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/cache"
-	"github.com/OSBA-eco-digit/leaf/internal/model"
-	"github.com/OSBA-eco-digit/leaf/internal/server"
+	"github.com/eco-digit/leaf/internal/cache"
+	"github.com/eco-digit/leaf/internal/model"
+	"github.com/eco-digit/leaf/internal/server"
 )
 
 var fixedTS = time.Date(2026, 4, 10, 8, 0, 0, 0, time.UTC)

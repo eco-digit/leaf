@@ -7,8 +7,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
-	"github.com/OSBA-eco-digit/leaf/internal/model"
+	"github.com/eco-digit/leaf/internal/infrastructure"
+	"github.com/eco-digit/leaf/internal/model"
 )
 
 const (

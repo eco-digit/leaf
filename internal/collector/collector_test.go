@@ -6,8 +6,8 @@ import (
 
 	prommodel "github.com/prometheus/common/model"
 
-	"github.com/OSBA-eco-digit/leaf/internal/collector"
-	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
+	"github.com/eco-digit/leaf/internal/collector"
+	"github.com/eco-digit/leaf/internal/infrastructure"
 )
 
 // mockQuerier is a test double for collector.Querier.

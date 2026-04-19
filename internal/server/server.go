@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/cache"
+	"github.com/eco-digit/leaf/internal/cache"
 )
 
 // Server is the http server of leaf.

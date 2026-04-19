@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
 	prommodel "github.com/prometheus/common/model"
+
+	"github.com/eco-digit/leaf/internal/infrastructure"
 )
 
 // Querier executes a PromQL query and returns results.

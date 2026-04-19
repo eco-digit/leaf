@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/model"
+	"github.com/eco-digit/leaf/internal/model"
 )
 
 func makeResults(n int) model.ResultSet {
