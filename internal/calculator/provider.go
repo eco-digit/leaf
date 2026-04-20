@@ -2,6 +2,7 @@
 package calculator
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/eco-digit/leaf/internal/collector"
@@ -123,9 +124,11 @@ func aggregateEnergyByComponent(
 	return rs
 }
 
-// operationalImpactByComponent computes provider-level operational impact.
-// This is done for GWP, ADP, CED and WUE from component-level energy records.
-// A category is skipped when its factor is zero.
+// operationalImpactByComponent computes provider-level operational impact
+// records for GWP, ADP, and CED from component-level energy records.
+// The GWP factor is in g CO₂eq/kWh and is converted to kg CO₂eq.
+// A category is skipped when its factor is zero (e.g. operational water has no
+// factor yet in V1).
 func operationalImpactByComponent(
 	energyRS model.ResultSet,
 	pue float64,
@@ -136,10 +139,10 @@ func operationalImpactByComponent(
 		cat    model.Category
 		factor float64
 		unit   string
-		scale  float64 // E x PUE x factor
+		scale  float64 // applied after E × PUE × factor
 	}
 	specs := []spec{
-		{model.CategoryGWP, factors.GWP.Value, "kg_co2eq", 1.0 / 1000.0}, // g - > kg
+		{model.CategoryGWP, factors.GWP.Value, "kg_co2eq", 1.0 / 1000.0}, // g → kg
 		{model.CategoryADP, factors.ADP.Value, "kg_sb_eq", 1.0},
 		{model.CategoryCED, factors.CED.Value, "mj", 1.0},
 	}
@@ -168,7 +171,8 @@ func operationalImpactByComponent(
 }
 
 // totalImpactByComponent merges provider-level operational and embodied records
-// into totals.
+// into PhaseTotal records. Categories that appear only in embodied (e.g. Water
+// in V1) are included with operational == 0.
 func totalImpactByComponent(
 	operationalRS model.ResultSet,
 	embodiedRS model.ResultSet,
@@ -220,4 +224,79 @@ func totalImpactByComponent(
 		})
 	}
 	return rs
+}
+
+// validateEnergy checks that device energy sums to component
+// energy and component energy sums to total.
+// TODO maybe move to a validation section later for now in WIP
+//
+//	 status helpful for testing and validation while dev
+//
+//		Returns warnings for each violation.
+func validateEnergy(rs model.ResultSet) []string {
+	energy := rs.FilterByCategory(model.CategoryEnergy)
+
+	deviceSum := make(map[string]float64)
+	for _, r := range energy.FilterBySubject(model.SubjectDevice) {
+		deviceSum[r.Component] += r.Value
+	}
+
+	var warnings []string
+	componentSum := 0.0
+	for _, r := range energy.FilterBySubject(model.SubjectProvider) {
+		if r.Component == "total" {
+			continue
+		}
+		if expected := deviceSum[r.Component]; r.Value != expected {
+			warnings = append(warnings, fmt.Sprintf(
+				"energy component %s: provider %.6f != sum of devices %.6f",
+				r.Component, r.Value, expected,
+			))
+		}
+		componentSum += r.Value
+	}
+
+	for _, r := range energy.FilterBySubject(model.SubjectProvider).FilterByComponent("total") {
+		if r.Value != componentSum {
+			warnings = append(warnings, fmt.Sprintf(
+				"energy total: provider %.6f != sum of components %.6f",
+				r.Value, componentSum,
+			))
+		}
+	}
+
+	return warnings
+}
+
+// ProviderResults runs the full provider-level calculation pipeline:
+// device energy > component energy > operational impacts > total impacts.
+//
+// Embodied records loaded in cash on startup are passed in to produce totals
+// but are not re-emitted — caller merges them from the cache.
+func ProviderResults(
+	raw *collector.RawMetrics,
+	infra *infrastructure.Infrastructure,
+	factors intensity.IntensityFactors,
+	embodiedRS model.ResultSet,
+	ts time.Time,
+) (model.ResultSet, []string) {
+	datacenter := infra.Environment.ID
+	provider := infra.Environment.ID
+	pue := infra.Environment.PUE
+
+	deviceEnergy, warnings := deviceEnergyResults(raw, infra, ts)
+	componentEnergy := aggregateEnergyByComponent(deviceEnergy, datacenter, provider, ts)
+	operational := operationalImpactByComponent(componentEnergy, pue, factors, ts)
+	totals := totalImpactByComponent(operational, embodiedRS, ts)
+
+	// TODO move validation
+	validationWarnings := validateEnergy(append(deviceEnergy, componentEnergy...))
+	warnings = append(warnings, validationWarnings...)
+
+	var rs model.ResultSet
+	rs = append(rs, deviceEnergy...)
+	rs = append(rs, componentEnergy...)
+	rs = append(rs, operational...)
+	rs = append(rs, totals...)
+	return rs, warnings
 }
