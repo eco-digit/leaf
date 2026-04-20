@@ -173,3 +173,61 @@ func TestTotalImpactByComponent(t *testing.T) {
 	assert.InDelta(t, 2.0, byKey[key{"total", model.CategoryWater}].Value, 1e-9)
 	assert.Equal(t, "m3", byKey[key{"total", model.CategoryWater}].Unit)
 }
+
+// Test Energy total
+func TestValidateEnergy_valid(t *testing.T) {
+	rs := model.ResultSet{
+		{Subject: model.SubjectDevice, Component: "compute", Category: model.CategoryEnergy, Value: 0.4},
+		{Subject: model.SubjectDevice, Component: "compute", Category: model.CategoryEnergy, Value: 0.3},
+		{Subject: model.SubjectDevice, Component: "storage", Category: model.CategoryEnergy, Value: 0.2},
+		{Subject: model.SubjectProvider, Component: "compute", Category: model.CategoryEnergy, Value: 0.7},
+		{Subject: model.SubjectProvider, Component: "storage", Category: model.CategoryEnergy, Value: 0.2},
+		{Subject: model.SubjectProvider, Component: "total", Category: model.CategoryEnergy, Value: 0.9},
+	}
+	assert.Empty(t, validateEnergy(rs))
+}
+
+// Test the compute pipline
+func TestProviderResults_EndToEnd(t *testing.T) {
+	infra := makeInfra([]infrastructure.ResolvedDevice{
+		{ID: "compute01", Component: "compute"},
+		{ID: "storage01", Component: "storage"},
+	})
+	raw := makeRawDeviceData(map[string]map[string]float64{
+		"compute01": {"bmc": 300},
+		"storage01": {"bmc": 200},
+	})
+	factors := intensity.IntensityFactors{
+		GWP: intensity.FactorValue{Value: 500, Unit: ""},
+	}
+	embodiedRS := model.ResultSet{
+		{Subject: model.SubjectProvider, Provider: "test-dc", Datacenter: "test-dc", Component: "compute", ImpactPhase: model.PhaseEmbodied, Category: model.CategoryGWP, Value: 0.1, Unit: "kg_co2eq"},
+		{Subject: model.SubjectProvider, Provider: "test-dc", Datacenter: "test-dc", Component: "total", ImpactPhase: model.PhaseEmbodied, Category: model.CategoryGWP, Value: 0.15, Unit: "kg_co2eq"},
+	}
+
+	rs, warnings := ProviderResults(raw, infra, factors, embodiedRS, testTS)
+
+	assert.Empty(t, warnings)
+
+	type key struct {
+		subject   model.SubjectType
+		component string
+		phase     model.ImpactPhase
+		cat       model.Category
+	}
+	byKey := make(map[key]model.ImpactResult)
+	for _, r := range rs {
+		byKey[key{r.Subject, r.Component, r.ImpactPhase, r.Category}] = r
+	}
+
+	// device energy
+	assert.InDelta(t, 0.3, byKey[key{model.SubjectDevice, "compute", model.PhaseOperational, model.CategoryEnergy}].Value, 1e-9)
+
+	// component energy
+	assert.InDelta(t, 0.3, byKey[key{model.SubjectProvider, "compute", model.PhaseOperational, model.CategoryEnergy}].Value, 1e-9)
+	assert.InDelta(t, 0.5, byKey[key{model.SubjectProvider, "total", model.PhaseOperational, model.CategoryEnergy}].Value, 1e-9)
+
+	assert.InDelta(t, 0.18, byKey[key{model.SubjectProvider, "compute", model.PhaseOperational, model.CategoryGWP}].Value, 1e-9)
+
+	assert.InDelta(t, 0.28, byKey[key{model.SubjectProvider, "compute", model.PhaseTotal, model.CategoryGWP}].Value, 1e-9)
+}
