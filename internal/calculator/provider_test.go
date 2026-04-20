@@ -9,6 +9,7 @@ import (
 
 	"github.com/eco-digit/leaf/internal/collector"
 	"github.com/eco-digit/leaf/internal/infrastructure"
+	"github.com/eco-digit/leaf/internal/intensity"
 	"github.com/eco-digit/leaf/internal/model"
 )
 
@@ -99,4 +100,76 @@ func TestAggregateEnergyByComponent(t *testing.T) {
 	assert.InDelta(t, 0.7, byComponent["compute"].Value, 1e-9)
 	assert.InDelta(t, 0.2, byComponent["storage"].Value, 1e-9)
 	assert.InDelta(t, 0.9, byComponent["total"].Value, 1e-9)
+}
+
+func TestOperationalImpactByComponent(t *testing.T) {
+	energyRS := model.ResultSet{
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "compute", Category: model.CategoryEnergy, Value: 1.0},
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "storage", Category: model.CategoryEnergy, Value: 0.5},
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "total", Category: model.CategoryEnergy, Value: 1.5},
+	}
+	factors := intensity.IntensityFactors{
+		GWP: intensity.FactorValue{Value: 400, Unit: "g_co2eq_per_kwh"},
+		ADP: intensity.FactorValue{Value: 0.423, Unit: "kg_sb_eq_per_kwh"},
+		CED: intensity.FactorValue{Value: 10.0, Unit: "mj_per_kwh"},
+	}
+	pue := 1.5
+
+	rs := operationalImpactByComponent(energyRS, pue, factors, testTS)
+
+	// 3 com x 3 cat = 9 records
+	require.Len(t, rs, 9)
+
+	type key struct {
+		component string
+		cat       model.Category
+	}
+	byKey := make(map[key]model.ImpactResult)
+	for _, r := range rs {
+		byKey[key{r.Component, r.Category}] = r
+	}
+
+	assert.Equal(t, model.PhaseOperational, byKey[key{"compute", model.CategoryGWP}].ImpactPhase)
+	assert.Equal(t, "kg_co2eq", byKey[key{"compute", model.CategoryGWP}].Unit)
+	assert.InDelta(t, 0.6, byKey[key{"compute", model.CategoryGWP}].Value, 1e-9)
+	assert.InDelta(t, 0.6345, byKey[key{"compute", model.CategoryADP}].Value, 1e-9)
+	assert.InDelta(t, 15.0, byKey[key{"compute", model.CategoryCED}].Value, 1e-9)
+
+	// storage: 0.5 kWh x 1.5 x 400 / 1000 = 0.3 kg GWP
+	assert.InDelta(t, 0.3, byKey[key{"storage", model.CategoryGWP}].Value, 1e-9)
+
+	// total: 1.5 kWh x1.5 x 400 / 1000 = 0.9 kg GWP
+	assert.InDelta(t, 0.9, byKey[key{"total", model.CategoryGWP}].Value, 1e-9)
+}
+
+func TestTotalImpactByComponent(t *testing.T) {
+	operationalRS := model.ResultSet{
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "compute", ImpactPhase: model.PhaseOperational, Category: model.CategoryGWP, Value: 0.6, Unit: "kg_co2eq"},
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "total", ImpactPhase: model.PhaseOperational, Category: model.CategoryGWP, Value: 0.9, Unit: "kg_co2eq"},
+	}
+	embodiedRS := model.ResultSet{
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "compute", ImpactPhase: model.PhaseEmbodied, Category: model.CategoryGWP, Value: 0.4, Unit: "kg_co2eq"},
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "total", ImpactPhase: model.PhaseEmbodied, Category: model.CategoryGWP, Value: 0.6, Unit: "kg_co2eq"},
+		{Subject: model.SubjectProvider, Provider: "dc", Datacenter: "dc", Component: "total", ImpactPhase: model.PhaseEmbodied, Category: model.CategoryWater, Value: 2.0, Unit: "m3"},
+	}
+
+	rs := totalImpactByComponent(operationalRS, embodiedRS, testTS)
+
+	type key struct {
+		component string
+		cat       model.Category
+	}
+	byKey := make(map[key]model.ImpactResult)
+	for _, r := range rs {
+		byKey[key{r.Component, r.Category}] = r
+	}
+
+	require.Len(t, rs, 3)
+
+	assert.Equal(t, model.PhaseTotal, byKey[key{"compute", model.CategoryGWP}].ImpactPhase)
+	assert.InDelta(t, 1.0, byKey[key{"compute", model.CategoryGWP}].Value, 1e-9)
+	assert.InDelta(t, 1.5, byKey[key{"total", model.CategoryGWP}].Value, 1e-9)
+
+	assert.InDelta(t, 2.0, byKey[key{"total", model.CategoryWater}].Value, 1e-9)
+	assert.Equal(t, "m3", byKey[key{"total", model.CategoryWater}].Unit)
 }
