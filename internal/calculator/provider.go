@@ -10,7 +10,10 @@ import (
 )
 
 // TODO orchestrator.reporting_interval: "1h"
-const windowHours = 1
+const (
+	windowHours   = 1
+	reportingUnit = "kWh"
+)
 
 // deviceEnergyKWh returns the energy in kWh for a single device over the
 // reporting.interval.
@@ -23,7 +26,7 @@ func deviceEnergyKWh(d *collector.DeviceRaw) (kwh float64, fallback bool) {
 	idle := d.Metrics["kepler_node_idle"]
 	active := d.Metrics["kepler_node_active"]
 	if idle > 0 || active > 0 {
-		return (idle + active) / 3600.0 / 1000.0, trueß
+		return (idle + active) / 3600.0 / 1000.0, true
 	}
 
 	return kwh, false
@@ -64,7 +67,7 @@ func deviceEnergyResults(
 			ImpactPhase: model.PhaseOperational,
 			Category:    model.CategoryEnergy,
 			Value:       kwh,
-			Unit:        "kwh",
+			Unit:        reportingUnit,
 			Timestamp:   ts,
 			PeriodHours: 1,
 		})
@@ -96,7 +99,7 @@ func aggregateEnergyByComponent(
 			ImpactPhase: model.PhaseOperational,
 			Category:    model.CategoryEnergy,
 			Value:       kwh,
-			Unit:        "kwh",
+			Unit:        reportingUnit,
 			Timestamp:   ts,
 			PeriodHours: windowHours,
 		})
@@ -111,7 +114,7 @@ func aggregateEnergyByComponent(
 		ImpactPhase: model.PhaseOperational,
 		Category:    model.CategoryEnergy,
 		Value:       total,
-		Unit:        "kwh",
+		Unit:        reportingUnit,
 		Timestamp:   ts,
 		PeriodHours: windowHours,
 	})
