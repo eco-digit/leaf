@@ -6,13 +6,14 @@ import (
 
 	"github.com/eco-digit/leaf/internal/collector"
 	"github.com/eco-digit/leaf/internal/infrastructure"
+	"github.com/eco-digit/leaf/internal/intensity"
 	"github.com/eco-digit/leaf/internal/model"
 )
 
 // TODO orchestrator.reporting_interval: "1h"
 const (
 	windowHours   = 1
-	reportingUnit = "kWh"
+	reportingUnit = "kwh"
 )
 
 // deviceEnergyKWh returns the energy in kWh for a single device over the
@@ -119,5 +120,49 @@ func aggregateEnergyByComponent(
 		PeriodHours: windowHours,
 	})
 
+	return rs
+}
+
+// operationalImpactByComponent computes provider-level operational impact.
+// This is done for GWP, ADP, CED and WUE from component-level energy records.
+// A category is skipped when its factor is zero.
+func operationalImpactByComponent(
+	energyRS model.ResultSet,
+	pue float64,
+	factors intensity.IntensityFactors,
+	ts time.Time,
+) model.ResultSet {
+	type spec struct {
+		cat    model.Category
+		factor float64
+		unit   string
+		scale  float64 // E x PUE x factor
+	}
+	specs := []spec{
+		{model.CategoryGWP, factors.GWP.Value, "kg_co2eq", 1.0 / 1000.0}, // g - > kg
+		{model.CategoryADP, factors.ADP.Value, "kg_sb_eq", 1.0},
+		{model.CategoryCED, factors.CED.Value, "mj", 1.0},
+	}
+
+	var rs model.ResultSet
+	for _, r := range energyRS {
+		for _, s := range specs {
+			if s.factor == 0 {
+				continue
+			}
+			rs = append(rs, model.ImpactResult{
+				Subject:     model.SubjectProvider,
+				Provider:    r.Provider,
+				Datacenter:  r.Datacenter,
+				Component:   r.Component,
+				ImpactPhase: model.PhaseOperational,
+				Category:    s.cat,
+				Value:       r.Value * pue * s.factor * s.scale,
+				Unit:        s.unit,
+				Timestamp:   ts,
+				PeriodHours: windowHours,
+			})
+		}
+	}
 	return rs
 }
