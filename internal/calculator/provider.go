@@ -166,3 +166,58 @@ func operationalImpactByComponent(
 	}
 	return rs
 }
+
+// totalImpactByComponent merges provider-level operational and embodied records
+// into totals.
+func totalImpactByComponent(
+	operationalRS model.ResultSet,
+	embodiedRS model.ResultSet,
+	ts time.Time,
+) model.ResultSet {
+	type key struct {
+		component string
+		cat       model.Category
+	}
+	type entry struct {
+		operational float64
+		embodied    float64
+		unit        string
+		provider    string
+		datacenter  string
+	}
+
+	totals := make(map[key]*entry)
+
+	for _, r := range operationalRS.FilterBySubject(model.SubjectProvider) {
+		k := key{r.Component, r.Category}
+		if totals[k] == nil {
+			totals[k] = &entry{provider: r.Provider, datacenter: r.Datacenter, unit: r.Unit}
+		}
+		totals[k].operational += r.Value
+	}
+
+	for _, r := range embodiedRS.FilterBySubject(model.SubjectProvider) {
+		k := key{r.Component, r.Category}
+		if totals[k] == nil {
+			totals[k] = &entry{provider: r.Provider, datacenter: r.Datacenter, unit: r.Unit}
+		}
+		totals[k].embodied += r.Value
+	}
+
+	var rs model.ResultSet
+	for k, e := range totals {
+		rs = append(rs, model.ImpactResult{
+			Subject:     model.SubjectProvider,
+			Provider:    e.provider,
+			Datacenter:  e.datacenter,
+			Component:   k.component,
+			ImpactPhase: model.PhaseTotal,
+			Category:    k.cat,
+			Value:       e.operational + e.embodied,
+			Unit:        e.unit,
+			Timestamp:   ts,
+			PeriodHours: windowHours,
+		})
+	}
+	return rs
+}
