@@ -75,3 +75,28 @@ func checkResult(t *testing.T, r model.ImpactResult, wantKWh float64, wantCompon
 	assert.InDelta(t, wantKWh, r.Value, 1e-9)
 	assert.Equal(t, "kwh", r.Unit)
 }
+
+func TestAggregateEnergyByComponent(t *testing.T) {
+	// Two compute devices (0.4 + 0.3 = 0.7) and one storage (0.2).
+	deviceResults := model.ResultSet{
+		{Subject: model.SubjectDevice, Component: "compute", Category: model.CategoryEnergy, Value: 0.4, Unit: "kwh"},
+		{Subject: model.SubjectDevice, Component: "compute", Category: model.CategoryEnergy, Value: 0.3, Unit: "kwh"},
+		{Subject: model.SubjectDevice, Component: "storage", Category: model.CategoryEnergy, Value: 0.2, Unit: "kwh"},
+	}
+
+	rs := aggregateEnergyByComponent(deviceResults, "test-dc", "test-dc", testTS)
+
+	byComponent := make(map[string]model.ImpactResult)
+	for _, r := range rs {
+		byComponent[r.Component] = r
+	}
+
+	require.Contains(t, byComponent, "compute")
+	require.Contains(t, byComponent, "storage")
+	require.Contains(t, byComponent, "total")
+
+	assert.Equal(t, model.SubjectProvider, byComponent["compute"].Subject)
+	assert.InDelta(t, 0.7, byComponent["compute"].Value, 1e-9)
+	assert.InDelta(t, 0.2, byComponent["storage"].Value, 1e-9)
+	assert.InDelta(t, 0.9, byComponent["total"].Value, 1e-9)
+}
