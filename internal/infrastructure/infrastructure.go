@@ -34,6 +34,7 @@ type infraFile struct {
 	Environment   Environment                `yaml:"environment"`
 	Devices       []device                   `yaml:"devices"`
 	MetricSources map[string]MetricSourceDef `yaml:"metric_sources"`
+	VMInfoSource  *VMInfoSourceDef           `yaml:"vm_info_source"`
 }
 
 // Environment describes the logical data-center environment.
