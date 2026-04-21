@@ -8,7 +8,6 @@
     update: yes
     force: no
     depth: 1
-  ignore_errors: true
 
 - name: Build the "leaf" binary
   become: true
@@ -28,7 +27,6 @@
     owner: "{{ leaf_user_name }}"
     group: "{{ leaf_user_group }}"
     mode: 'u=rx,g=rx,o='
-  ignore_errors: true
 
 - name: Ensure a symlink to "leaf" binary
   become: true
@@ -36,4 +34,3 @@
     src: "{{ leaf_src_dir }}/bin/leaf"
     dest: "{{ leaf_bin }}"
     state: link
-  ignore_errors: true
