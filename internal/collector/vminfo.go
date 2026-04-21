@@ -71,8 +71,8 @@ func ParseSCSFlavor(name string) (vcpus int, memGB int) {
 func parseLeadingInt(s string) int {
 	i := 0
 	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+		i++
 	}
-	i++
 	if i == 0 {
 		return 0
 	}
