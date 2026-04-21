@@ -200,6 +200,7 @@ func Load(infraPath, profilePath string) (*Infrastructure, error) {
 		Environment:   infra.Environment,
 		Devices:       resolved,
 		MetricSources: infra.MetricSources,
+		VMInfoSource:  infra.VMInfoSource,
 	}, nil
 }
 
