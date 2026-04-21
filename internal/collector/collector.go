@@ -33,6 +33,7 @@ type RawMetrics struct {
 	Timestamp time.Time
 	Devices   map[string]*DeviceRaw
 	Racks     map[string]*RackRaw
+	VMInfos   []VMInfo
 	Warnings  []string
 }
 
