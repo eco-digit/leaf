@@ -19,17 +19,29 @@ type MetricSourceDef struct {
 	Unit          string `yaml:"unit"`
 }
 
+// VMInfoSourceDef configures the Prometheus info metric used to map VM UUIDs
+// to OpenStack project and flavor metadata.
+type VMInfoSourceDef struct {
+	Metric           string `yaml:"metric"`
+	UUIDLabel        string `yaml:"uuid_label"`
+	ProjectIDLabel   string `yaml:"project_id_label"`
+	ProjectNameLabel string `yaml:"project_name_label"`
+	FlavorLabel      string `yaml:"flavor_label"`
+}
+
 type infraFile struct {
 	Version       int                        `yaml:"version"`
 	Environment   Environment                `yaml:"environment"`
 	Devices       []device                   `yaml:"devices"`
 	MetricSources map[string]MetricSourceDef `yaml:"metric_sources"`
+	VMInfoSource  *VMInfoSourceDef           `yaml:"vm_info_source"`
 }
 
 // Environment describes the logical data-center environment.
 type Environment struct {
-	ID   string `yaml:"id"`
-	Name string `yaml:"name"`
+	ID   string  `yaml:"id"`
+	Name string  `yaml:"name"`
+	PUE  float64 `yaml:"pue"`
 }
 
 // device is the raw YAML representation of a device entry.
@@ -136,6 +148,7 @@ type Infrastructure struct {
 	Environment   Environment
 	Devices       []ResolvedDevice
 	MetricSources map[string]MetricSourceDef
+	VMInfoSource  *VMInfoSourceDef
 }
 
 // RoleToComponent maps a device role string to one of Leaf's four component ategories. Unknown roles return unknown.
@@ -166,6 +179,14 @@ func Load(infraPath, profilePath string) (*Infrastructure, error) {
 		return nil, fmt.Errorf("infrastructure: %w", err)
 	}
 
+	if infra.Environment.PUE == 0 {
+		// PUE default set to 1.2
+		infra.Environment.PUE = 1.2
+	}
+	if infra.Environment.PUE < 1.0 {
+		return nil, fmt.Errorf("infrastructure: environment.pue must be >= 1.0, got %.4f", infra.Environment.PUE)
+	}
+
 	profiles, err := loadProfileFile(profilePath)
 	if err != nil {
 		return nil, fmt.Errorf("profiles: %w", err)
@@ -180,6 +201,7 @@ func Load(infraPath, profilePath string) (*Infrastructure, error) {
 		Environment:   infra.Environment,
 		Devices:       resolved,
 		MetricSources: infra.MetricSources,
+		VMInfoSource:  infra.VMInfoSource,
 	}, nil
 }
 

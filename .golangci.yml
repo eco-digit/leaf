@@ -1,0 +1,30 @@
+version: "2"
+issues:
+  max-same-issues: 50
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/eco-digit/leaf
+linters:
+  default: standard
+  enable:
+    - revive
+    - misspell        # typos in comments or strings
+    - unparam         # unused function parameters
+    - gocyclo         # flags overly complex functions
+    - gosec           # basic security checks
+  settings:
+    gocyclo:
+      min-complexity: 15
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gosec
+          - unparam
+run:
+  timeout: 3m

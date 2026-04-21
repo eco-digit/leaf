@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/model"
+	"github.com/eco-digit/leaf/internal/model"
 )
 
 // Cache holds the most recently calculated ResultSet together with the time it was last updated.

@@ -12,7 +12,7 @@ RUN go build -ldflags "-s -w" -o leaf cmd/leaf/main.go
 
 FROM debian:stable AS runtime
 LABEL app=leaf
-LABEL org=osba
+LABEL org=eco-digit
 
 ARG DOCKER_DEBIAN_RELEASE
 ARG DOCKER_GOLANG_RELEASE

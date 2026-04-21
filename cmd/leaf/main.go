@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/OSBA-eco-digit/leaf/internal/cache"
-	"github.com/OSBA-eco-digit/leaf/internal/collector"
-	"github.com/OSBA-eco-digit/leaf/internal/config"
-	"github.com/OSBA-eco-digit/leaf/internal/embodied"
-	"github.com/OSBA-eco-digit/leaf/internal/infrastructure"
-	"github.com/OSBA-eco-digit/leaf/internal/promclient"
-	"github.com/OSBA-eco-digit/leaf/internal/server"
+	"github.com/eco-digit/leaf/internal/cache"
+	"github.com/eco-digit/leaf/internal/collector"
+	"github.com/eco-digit/leaf/internal/config"
+	"github.com/eco-digit/leaf/internal/embodied"
+	"github.com/eco-digit/leaf/internal/infrastructure"
+	"github.com/eco-digit/leaf/internal/promclient"
+	"github.com/eco-digit/leaf/internal/server"
 )
 
 func main() {
@@ -107,6 +107,14 @@ func runCollectOnce(cfg *config.Config, infra *infrastructure.Infrastructure) {
 			for src, val := range rack.Metrics {
 				fmt.Printf("    %-30s = %.4f\n", src, val)
 			}
+		}
+	}
+
+	if len(raw.VMInfos()) > 0 {
+		fmt.Printf("\nVM metadata (%d VMs from libvirt):\n", len(raw.VMInfos()))
+		for _, vm := range raw.VMInfos() {
+			fmt.Printf("  %-36s  project=%s (%s)  flavor=%s  vcpus=%d  mem=%d GB\n",
+				vm.VMID, vm.ProjectID, vm.ProjectName, vm.FlavorName, vm.VCPUs, vm.MemoryGB)
 		}
 	}
 

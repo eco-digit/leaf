@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/OSBA-eco-digit/leaf/internal/model"
+	"github.com/eco-digit/leaf/internal/model"
 )
 
 type sample struct {
