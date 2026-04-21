@@ -110,6 +110,14 @@ func runCollectOnce(cfg *config.Config, infra *infrastructure.Infrastructure) {
 		}
 	}
 
+	if len(raw.VMInfos) > 0 {
+		fmt.Printf("\nVM metadata (%d VMs from libvirt):\n", len(raw.VMInfos))
+		for _, vm := range raw.VMInfos {
+			fmt.Printf("  %-36s  project=%s (%s)  flavor=%s  vcpus=%.0f  mem=%.0f GB\n",
+				vm.VMID, vm.ProjectID, vm.ProjectName, vm.FlavorName, vm.VCPUs, vm.MemoryGB)
+		}
+	}
+
 	if len(raw.Warnings) > 0 {
 		fmt.Printf("\nWarnings (%d):\n", len(raw.Warnings))
 		for _, w := range raw.Warnings {
