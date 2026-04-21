@@ -148,6 +148,7 @@ type Infrastructure struct {
 	Environment   Environment
 	Devices       []ResolvedDevice
 	MetricSources map[string]MetricSourceDef
+	VMInfoSource  *VMInfoSourceDef
 }
 
 // RoleToComponent maps a device role string to one of Leaf's four component ategories. Unknown roles return unknown.
