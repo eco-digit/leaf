@@ -19,6 +19,16 @@ type MetricSourceDef struct {
 	Unit          string `yaml:"unit"`
 }
 
+// VMInfoSourceDef configures the Prometheus info metric used to map VM UUIDs
+// to OpenStack project and flavor metadata.
+type VMInfoSourceDef struct {
+	Metric           string `yaml:"metric"`
+	UUIDLabel        string `yaml:"uuid_label"`
+	ProjectIDLabel   string `yaml:"project_id_label"`
+	ProjectNameLabel string `yaml:"project_name_label"`
+	FlavorLabel      string `yaml:"flavor_label"`
+}
+
 type infraFile struct {
 	Version       int                        `yaml:"version"`
 	Environment   Environment                `yaml:"environment"`
