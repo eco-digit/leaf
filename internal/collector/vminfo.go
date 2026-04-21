@@ -33,7 +33,13 @@ func collectVMInfo(q Querier, src *infrastructure.VMInfoSourceDef, r *RawMetrics
 		return
 	}
 
-	vec, _ := val.(prommodel.Vector)
+	vec, ok := val.(prommodel.Vector)
+	if !ok {
+		warn := fmt.Sprintf("vm_info_source: unexpected result type %T", val)
+		log.Printf("collector warning: %s", warn)
+		r.Warnings = append(r.Warnings, warn)
+		return
+	}
 	for _, s := range vec {
 		uuid := string(s.Metric[prommodel.LabelName(src.UUIDLabel)])
 		if uuid == "" {
@@ -41,7 +47,7 @@ func collectVMInfo(q Querier, src *infrastructure.VMInfoSourceDef, r *RawMetrics
 		}
 		flavor := string(s.Metric[prommodel.LabelName(src.FlavorLabel)])
 		vcpus, memGB := ParseSCSFlavor(flavor)
-		r.VMInfos = append(r.VMInfos, VMInfo{
+		r.VMs = append(r.VMs, VMInfo{
 			VMID:        uuid,
 			ProjectID:   string(s.Metric[prommodel.LabelName(src.ProjectIDLabel)]),
 			ProjectName: string(s.Metric[prommodel.LabelName(src.ProjectNameLabel)]),

@@ -35,8 +35,15 @@ func makeRawDeviceData(deviceMetrics map[string]map[string]float64) *collector.R
 }
 
 func TestDeviceEnergy(t *testing.T) {
-	d := &collector.DeviceRaw{Metrics: map[string]float64{"bmc": 300}}
-	kwh, fallback := deviceEnergyKWh(d)
+	raw := &collector.RawMetrics{
+		Devices: map[string]*collector.DeviceRaw{
+			"dev": {
+				Metrics:   map[string]float64{"bmc": 300},
+				VMMetrics: map[string]map[string]float64{},
+			},
+		},
+	}
+	kwh, fallback := deviceEnergyKWh(raw, "dev")
 
 	require.False(t, fallback, "expected BMC path, got Kepler fallback")
 	assert.InDelta(t, 0.3, kwh, 1e-9)

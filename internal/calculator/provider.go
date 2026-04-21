@@ -3,6 +3,7 @@ package calculator
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/eco-digit/leaf/internal/collector"
@@ -17,26 +18,59 @@ const (
 	reportingUnit = "kwh"
 )
 
+// ProviderResults runs the full provider-level calculation pipeline:
+// device energy > component energy > operational impacts > total impacts.
+//
+// Embodied records loaded in cash on startup are passed in to produce totals
+// but are not re-emitted — caller merges them from the cache.
+func ProviderResults(
+	src collector.DeviceEnergySource,
+	infra *infrastructure.Infrastructure,
+	factors intensity.IntensityFactors,
+	embodiedRS model.ResultSet,
+	ts time.Time,
+) (model.ResultSet, []string) {
+	datacenter := infra.Environment.ID
+	provider := infra.Environment.ID
+	pue := infra.Environment.PUE
+
+	deviceEnergy, warnings := deviceEnergyResults(src, infra, ts)
+	componentEnergy := aggregateEnergyByComponent(deviceEnergy, datacenter, provider, ts)
+	operational := operationalImpactByComponent(componentEnergy, pue, factors, ts)
+	totals := totalImpactByComponent(operational, embodiedRS, ts)
+
+	// TODO move validation
+	validationWarnings := validateEnergy(append(deviceEnergy, componentEnergy...))
+	warnings = append(warnings, validationWarnings...)
+
+	var rs model.ResultSet
+	rs = append(rs, deviceEnergy...)
+	rs = append(rs, componentEnergy...)
+	rs = append(rs, operational...)
+	rs = append(rs, totals...)
+	return rs, warnings
+}
+
 // deviceEnergyKWh returns the energy in kWh for a single device over the
 // reporting.interval.
-func deviceEnergyKWh(d *collector.DeviceRaw) (kwh float64, fallback bool) {
-	if bmc, ok := d.Metrics["bmc"]; ok && bmc > 0 {
+func deviceEnergyKWh(src collector.DeviceEnergySource, deviceID string) (kwh float64, fallback bool) {
+	if bmc, ok := src.MetricValue(deviceID, "bmc"); ok && bmc > 0 {
 		return bmc * windowHours / 1000.0, false
 	}
 
 	// kepler fallback
-	idle := d.Metrics["kepler_node_idle"]
-	active := d.Metrics["kepler_node_active"]
+	idle, _ := src.MetricValue(deviceID, "kepler_node_idle")
+	active, _ := src.MetricValue(deviceID, "kepler_node_active")
 	if idle > 0 || active > 0 {
 		return (idle + active) / 3600.0 / 1000.0, true
 	}
 
-	return kwh, false
+	return 0, false
 }
 
 // deviceEnergyResults creates an energy ImpatResult per device.
 func deviceEnergyResults(
-	raw *collector.RawMetrics,
+	src collector.DeviceEnergySource,
 	infra *infrastructure.Infrastructure,
 	ts time.Time,
 ) (model.ResultSet, []string) {
@@ -47,12 +81,8 @@ func deviceEnergyResults(
 	provider := infra.Environment.ID
 
 	for _, dev := range infra.Devices {
-		d, ok := raw.Devices[dev.ID]
-		if !ok {
-			continue
-		}
-		kwh, fallback := deviceEnergyKWh(d)
-		if !ok {
+		kwh, fallback := deviceEnergyKWh(src, dev.ID)
+		if kwh == 0 {
 			warnings = append(warnings, dev.ID+": no energy metric available (BMC and Kepler both missing)")
 			continue
 		}
@@ -124,11 +154,10 @@ func aggregateEnergyByComponent(
 	return rs
 }
 
-// operationalImpactByComponent computes provider-level operational impact
+// TODO operationalImpactByDevice
+//
+// Component computes provider-level operational impact
 // records for GWP, ADP, and CED from component-level energy records.
-// The GWP factor is in g CO₂eq/kWh and is converted to kg CO₂eq.
-// A category is skipped when its factor is zero (e.g. operational water has no
-// factor yet in V1).
 func operationalImpactByComponent(
 	energyRS model.ResultSet,
 	pue float64,
@@ -247,7 +276,7 @@ func validateEnergy(rs model.ResultSet) []string {
 		if r.Component == "total" {
 			continue
 		}
-		if expected := deviceSum[r.Component]; r.Value != expected {
+		if expected := deviceSum[r.Component]; math.Abs(r.Value-expected) > 1e-9 {
 			warnings = append(warnings, fmt.Sprintf(
 				"energy component %s: provider %.6f != sum of devices %.6f",
 				r.Component, r.Value, expected,
@@ -257,7 +286,7 @@ func validateEnergy(rs model.ResultSet) []string {
 	}
 
 	for _, r := range energy.FilterBySubject(model.SubjectProvider).FilterByComponent("total") {
-		if r.Value != componentSum {
+		if math.Abs(r.Value-componentSum) > 1e-9 {
 			warnings = append(warnings, fmt.Sprintf(
 				"energy total: provider %.6f != sum of components %.6f",
 				r.Value, componentSum,
@@ -266,37 +295,4 @@ func validateEnergy(rs model.ResultSet) []string {
 	}
 
 	return warnings
-}
-
-// ProviderResults runs the full provider-level calculation pipeline:
-// device energy > component energy > operational impacts > total impacts.
-//
-// Embodied records loaded in cash on startup are passed in to produce totals
-// but are not re-emitted — caller merges them from the cache.
-func ProviderResults(
-	raw *collector.RawMetrics,
-	infra *infrastructure.Infrastructure,
-	factors intensity.IntensityFactors,
-	embodiedRS model.ResultSet,
-	ts time.Time,
-) (model.ResultSet, []string) {
-	datacenter := infra.Environment.ID
-	provider := infra.Environment.ID
-	pue := infra.Environment.PUE
-
-	deviceEnergy, warnings := deviceEnergyResults(raw, infra, ts)
-	componentEnergy := aggregateEnergyByComponent(deviceEnergy, datacenter, provider, ts)
-	operational := operationalImpactByComponent(componentEnergy, pue, factors, ts)
-	totals := totalImpactByComponent(operational, embodiedRS, ts)
-
-	// TODO move validation
-	validationWarnings := validateEnergy(append(deviceEnergy, componentEnergy...))
-	warnings = append(warnings, validationWarnings...)
-
-	var rs model.ResultSet
-	rs = append(rs, deviceEnergy...)
-	rs = append(rs, componentEnergy...)
-	rs = append(rs, operational...)
-	rs = append(rs, totals...)
-	return rs, warnings
 }

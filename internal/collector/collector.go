@@ -33,8 +33,38 @@ type RawMetrics struct {
 	Timestamp time.Time
 	Devices   map[string]*DeviceRaw
 	Racks     map[string]*RackRaw
-	VMInfos   []VMInfo
+	VMs       []VMInfo
 	Warnings  []string
+}
+
+func (r *RawMetrics) MetricValue(deviceID, sourceName string) (float64, bool) {
+	d, ok := r.Devices[deviceID]
+	if !ok {
+		return 0, false
+	}
+	v, ok := d.Metrics[sourceName]
+	return v, ok
+}
+
+func (r *RawMetrics) VMMetricValues(deviceID, sourceName string) map[string]float64 {
+	d, ok := r.Devices[deviceID]
+	if !ok {
+		return nil
+	}
+	return d.VMMetrics[sourceName]
+}
+
+func (r *RawMetrics) VMInfos() []VMInfo {
+	return r.VMs
+}
+
+func (r *RawMetrics) RackMetricValue(rackID, sourceName string) (float64, bool) {
+	rack, ok := r.Racks[rackID]
+	if !ok {
+		return 0, false
+	}
+	v, ok := rack.Metrics[sourceName]
+	return v, ok
 }
 
 // Collect queries Prometheus for every metric source defined in infra.MetricSources.
@@ -87,7 +117,10 @@ func collectSource(
 		return err
 	}
 
-	vec, _ := val.(prommodel.Vector)
+	vec, ok := val.(prommodel.Vector)
+	if !ok {
+		return fmt.Errorf("unexpected result type %T for source %s", val, name)
+	}
 	for _, s := range vec {
 		labelVal := string(s.Metric[prommodel.LabelName(src.MatchLabel)])
 		if labelVal == "" {
@@ -129,7 +162,7 @@ func collectSource(
 func buildDeviceIndex(devices []infrastructure.ResolvedDevice) map[string]string {
 	idx := make(map[string]string, len(devices))
 	for _, d := range devices {
-		idx[d.ID] = d.ID
+		idx[strings.ToLower(d.ID)] = d.ID
 	}
 	return idx
 }
