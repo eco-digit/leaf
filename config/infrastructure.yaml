@@ -27,6 +27,13 @@ metric_sources:
     query: 'all_psus_total_output_power{job="powershelf-power"}'
     match_label: instance
     unit: watts
+vm_info_source:
+  metric: libvirt_domain_openstack_info
+  uuid_label: instance_id
+  project_id_label: project_id
+  project_name_label: project_name
+  flavor_label: flavor_name
+
 environment:
   id: ocp-scs
   name: ScaleUp-OCP
