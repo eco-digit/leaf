@@ -65,6 +65,8 @@ func Collect(q Querier, infra *infrastructure.Infrastructure, window string, at 
 		}
 	}
 
+	collectVMInfo(q, infra.VMInfoSource, raw)
+
 	return raw, nil
 }
 
