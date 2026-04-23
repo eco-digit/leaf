@@ -40,7 +40,7 @@ type Config struct {
 		MixData struct {
 			Path    string `yaml:"path"` // path to electricity_mixes.csv
 			Country string `yaml:"country"`
-		} `yaml:"mix_data"`
+		} `yaml:"static_factors"`
 	} `yaml:"intensity"`
 }
 
