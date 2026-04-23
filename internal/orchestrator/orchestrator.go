@@ -96,10 +96,14 @@ func (o *Orchestrator) RunCycle() (CycleResult, error) {
 	providerRS, warnings := calculator.ProviderResults(raw, o.infra, factors, o.embodiedRS, ts)
 	warnings = append(raw.Warnings, warnings...)
 
-	full := make(model.ResultSet, 0, len(o.embodiedRS)+len(providerRS))
-	full = append(full, o.embodiedRS...)
-	full = append(full, providerRS...)
+	contextRS := make(model.ResultSet, 0, len(o.embodiedRS)+len(providerRS))
+	contextRS = append(contextRS, o.embodiedRS...)
+	contextRS = append(contextRS, providerRS...)
 
+	tenantRS, tenantWarnings := calculator.TenantResults(raw, o.infra, factors, contextRS, ts)
+	warnings = append(warnings, tenantWarnings...)
+
+	full := append(contextRS, tenantRS...)
 	o.cache.Update(full)
 
 	return CycleResult{RS: full, Factors: factors, Warnings: warnings}, nil

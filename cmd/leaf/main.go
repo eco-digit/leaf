@@ -5,7 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"sort"
+	"syscall"
 	"time"
 
 	"github.com/eco-digit/leaf/internal/cache"
@@ -88,11 +91,19 @@ func main() {
 	log.Printf("starting Leaf on %s", addr)
 	srv := server.New(c, addr)
 
-	go orch.Start(context.Background())
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-	if err := srv.Start(); err != nil {
-		log.Fatalf("server: %v", err)
-	}
+	go orch.Start(ctx)
+
+	go func() {
+		if err := srv.Start(); err != nil {
+			log.Fatalf("server: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Printf("shutting down")
 }
 
 func parseInterval(s string) (time.Duration, error) {
@@ -137,6 +148,8 @@ func printResultSet(rs model.ResultSet) {
 			label = fmt.Sprintf("device  %-20s %-10s %-12s", r.Device, r.Component, r.Category)
 		case model.SubjectProvider:
 			label = fmt.Sprintf("provider%-20s %-10s %-12s", "", r.Component, r.Category)
+		case model.SubjectTenant:
+			label = fmt.Sprintf("tenant  %-20s %-10s %-12s", r.ProjectName, r.Component, r.Category)
 		default:
 			continue
 		}
