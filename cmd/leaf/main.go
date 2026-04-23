@@ -1,24 +1,29 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"sort"
+	"syscall"
 	"time"
 
 	"github.com/eco-digit/leaf/internal/cache"
-	"github.com/eco-digit/leaf/internal/collector"
 	"github.com/eco-digit/leaf/internal/config"
 	"github.com/eco-digit/leaf/internal/embodied"
 	"github.com/eco-digit/leaf/internal/infrastructure"
-	"github.com/eco-digit/leaf/internal/promclient"
+	"github.com/eco-digit/leaf/internal/intensity"
+	"github.com/eco-digit/leaf/internal/model"
+	"github.com/eco-digit/leaf/internal/orchestrator"
 	"github.com/eco-digit/leaf/internal/server"
 )
 
 func main() {
 	configPath := flag.String("config", "config.yaml", "Path to config file")
-	// DEV: Needed for testing
-	collectOnce := flag.Bool("collect-once", false, "Run one collection cycle, print results, and exit")
+	collectOnce := flag.Bool("collect-once", false, "Run one calculation cycle, print results, and exit")
 	flag.Parse()
 
 	cfg, err := config.LoadConfig(*configPath)
@@ -33,20 +38,49 @@ func main() {
 
 	c := cache.New()
 
-	// Pass cache with static embodied metrics computed at startupl.
-	rs, err := embodied.Calculate(infra, time.Now().Truncate(time.Hour))
+	embodiedRS, err := embodied.Calculate(infra, time.Now().Truncate(time.Hour))
 	if err != nil {
 		log.Fatalf("calculate embodied: %v", err)
 	}
-	if err := embodied.Validate(rs); err != nil {
+	if err := embodied.Validate(embodiedRS); err != nil {
 		log.Fatalf("validate embodied: %v", err)
 	}
-	c.Update(rs)
-	log.Printf("Seeded cache with %d embodied impact records", len(rs))
+	c.Update(embodiedRS)
+	log.Printf("seeded cache with %d embodied impact records", len(embodiedRS))
 
-	// DEV: Fill hte cache with prom metrics once
+	interval, err := parseInterval(cfg.Orchestrator.ReportingInterval)
+	if err != nil {
+		log.Fatalf("orchestrator interval: %v", err)
+	}
+
+	ttl, err := parseInterval(cfg.Intensity.TTL)
+	if err != nil {
+		log.Fatalf("intensity ttl: %v", err)
+	}
+	if ttl == 0 {
+		ttl = interval
+	}
+
+	orch, err := orchestrator.New(
+		cfg.Prometheus.URL, cfg.Prometheus.Username, cfg.Prometheus.Password,
+		intensity.Config{TTL: ttl, Zone: cfg.Intensity.ElectricityMaps.Zone, Country: cfg.Intensity.MixData.Country},
+		cfg.Intensity.ElectricityMaps.APIKey, cfg.Intensity.ElectricityMaps.BaseURL,
+		cfg.Intensity.MixData.Path,
+		interval,
+		infra,
+		embodiedRS,
+		c,
+	)
+	if err != nil {
+		log.Fatalf("orchestrator: %v", err)
+	}
+
 	if *collectOnce {
-		runCollectOnce(cfg, infra)
+		result, err := orch.RunCycle()
+		if err != nil {
+			log.Fatalf("collect-once: %v", err)
+		}
+		printCycleResult(result)
 		return
 	}
 
@@ -54,76 +88,78 @@ func main() {
 	if addr == "" {
 		addr = ":9010"
 	}
-
-	log.Printf("Starting Leaf on %s", addr)
+	log.Printf("starting Leaf on %s", addr)
 	srv := server.New(c, addr)
-	if err := srv.Start(); err != nil {
-		log.Fatalf("server: %v", err)
-	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go orch.Start(ctx)
+
+	go func() {
+		if err := srv.Start(); err != nil {
+			log.Fatalf("server: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Printf("shutting down")
 }
 
-// runCollectOnce performs a single collection cycle, prints a summary of what was collected
-func runCollectOnce(cfg *config.Config, infra *infrastructure.Infrastructure) {
-	client, err := promclient.NewClient(cfg.Prometheus.URL, cfg.Prometheus.Username, cfg.Prometheus.Password)
-	if err != nil {
-		log.Fatalf("collect-once: %v", err)
+func parseInterval(s string) (time.Duration, error) {
+	if s == "" {
+		return time.Hour, nil
 	}
+	return time.ParseDuration(s)
+}
 
-	window := cfg.Orchestrator.ReportingInterval
-	if window == "" {
-		window = "1h"
-	}
+// printCycleResult prints a human-readable summary of one calculation cycle.
+func printCycleResult(result orchestrator.CycleResult) {
+	fmt.Printf("\n ### Intensity factors ###\n")
+	fmt.Printf("  GWP  %12g %-25s (source: %s)\n", result.Factors.GWP.Value, result.Factors.GWP.Unit, result.Factors.GWP.Source)
+	fmt.Printf("  ADP  %12g %-25s (source: %s)\n", result.Factors.ADP.Value, result.Factors.ADP.Unit, result.Factors.ADP.Source)
+	fmt.Printf("  CED  %12g %-25s (source: %s)\n", result.Factors.CED.Value, result.Factors.CED.Unit, result.Factors.CED.Source)
 
-	raw, err := collector.Collect(client, infra, window, time.Now())
-	if err != nil {
-		log.Fatalf("collect-once: %v", err)
-	}
+	fmt.Printf("\n## Provider impact results ##\n")
+	printResultSet(result.RS)
 
-	fmt.Printf("\n=== Collection results (window=%s) ===\n\n", window)
-
-	fmt.Printf("Devices (%d registered):\n", len(infra.Devices))
-	for _, dev := range infra.Devices {
-		d := raw.Devices[dev.ID]
-		if len(d.Metrics) == 0 && len(d.VMMetrics) == 0 {
-			fmt.Printf("  %-20s  [no data]\n", dev.ID)
-			continue
-		}
-		fmt.Printf("  %-20s\n", dev.ID)
-		for src, val := range d.Metrics {
-			fmt.Printf("    %-30s = %.4f\n", src, val)
-		}
-		for src, vms := range d.VMMetrics {
-			fmt.Printf("    %-30s = %d VMs\n", src, len(vms))
-			for vmID, val := range vms {
-				fmt.Printf("      %-28s = %.4f\n", vmID, val)
-			}
-		}
-	}
-
-	if len(raw.Racks) > 0 {
-		fmt.Printf("\nRack/infrastructure metrics (%d instances):\n", len(raw.Racks))
-		for instance, rack := range raw.Racks {
-			fmt.Printf("  %s\n", instance)
-			for src, val := range rack.Metrics {
-				fmt.Printf("    %-30s = %.4f\n", src, val)
-			}
-		}
-	}
-
-	if len(raw.VMInfos()) > 0 {
-		fmt.Printf("\nVM metadata (%d VMs from libvirt):\n", len(raw.VMInfos()))
-		for _, vm := range raw.VMInfos() {
-			fmt.Printf("  %-36s  project=%s (%s)  flavor=%s  vcpus=%d  mem=%d GB\n",
-				vm.VMID, vm.ProjectID, vm.ProjectName, vm.FlavorName, vm.VCPUs, vm.MemoryGB)
-		}
-	}
-
-	if len(raw.Warnings) > 0 {
-		fmt.Printf("\nWarnings (%d):\n", len(raw.Warnings))
-		for _, w := range raw.Warnings {
+	if len(result.Warnings) > 0 {
+		fmt.Printf("\n## Warnings (%d) ##\n", len(result.Warnings))
+		for _, w := range result.Warnings {
 			fmt.Printf("  ! %s\n", w)
 		}
 	}
-
 	fmt.Println()
+}
+
+func printResultSet(rs model.ResultSet) {
+	type row struct {
+		key   string
+		label string
+		value float64
+		unit  string
+	}
+
+	var rows []row
+	for _, r := range rs {
+		var label string
+		switch r.Subject {
+		case model.SubjectDevice:
+			label = fmt.Sprintf("device  %-20s %-10s %-12s", r.Device, r.Component, r.Category)
+		case model.SubjectProvider:
+			label = fmt.Sprintf("provider%-20s %-10s %-12s", "", r.Component, r.Category)
+		case model.SubjectTenant:
+			label = fmt.Sprintf("tenant  %-20s %-10s %-12s", r.ProjectName, r.Component, r.Category)
+		default:
+			continue
+		}
+		key := fmt.Sprintf("%s/%s/%s/%s/%s", r.Subject, r.ImpactPhase, r.Component, r.Category, r.Device)
+		rows = append(rows, row{key: key, label: label + " [" + string(r.ImpactPhase) + "]", value: r.Value, unit: r.Unit})
+	}
+
+	sort.Slice(rows, func(i, j int) bool { return rows[i].key < rows[j].key })
+
+	for _, r := range rows {
+		fmt.Printf("  %s  %12g %s\n", r.label, r.value, r.unit)
+	}
 }
